@@ -458,4 +458,33 @@ class FileUploaderService {
 
         expirationPeriod
     }
+
+    /**
+     * Retrieves content of the given url and stores it in the
+     * temporary directory
+     * @param url The url to be retrieved
+     * @param filename Name of the file
+     */
+    @Transactional
+    File getFileFromURL(String url,String filename) {
+        def file
+        FileOutputStream fos = null
+
+        def path = grailsApplication.config.grails.tempDirectory
+        if (!path.endsWith('/'))
+            path = path + "/"
+        def currentTime = System.currentTimeMillis()
+        path = path + currentTime + "/"
+        new File(path).mkdirs()
+
+        file = new File(path + "${filename}")
+        fos = new FileOutputStream(file)
+        fos.write(new URL(url).getBytes())
+        fos.close()
+
+        // Delete the temporary file when JVM exited since the base file is not required after upload
+        file.deleteOnExit()
+
+        return file
+    }
 }
