@@ -376,10 +376,7 @@ class FileUploaderService {
                 destination?.close()
             }
         }
-        if (destFile.exists()) {
-            return this.saveFile(group, destFile, name, locale)
-        }
-
+        return this.saveFile(group, destFile, name, locale)
     }
 
     String resolvePath(UFile ufileInstance) {
