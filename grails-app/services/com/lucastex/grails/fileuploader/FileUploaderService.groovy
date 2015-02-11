@@ -353,7 +353,7 @@ class FileUploaderService {
         }
 
         String sourceFilePath = ufileInstance.path
-        if (urlValidator.isValid(sourceFilePath)) {
+        if (urlValidator.isValid(sourceFilePath) && ufileInstance.type != UFileType.LOCAL) {
             FileOutputStream fos = null
 
             try {
