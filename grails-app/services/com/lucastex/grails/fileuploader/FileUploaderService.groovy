@@ -399,7 +399,6 @@ class FileUploaderService {
             String fullName = it.fullName.trim().replaceAll(" ", "_").replaceAll("-", "_")
             String newFileName = "${it.fileGroup}-${System.currentTimeMillis()}-${fullName}"
             blobDetailList << new BlobDetail(newFileName, new File(it.path), it.id)
-            Thread.sleep(2)
         }
         containerName = UFile.containerName(containerName)
 
