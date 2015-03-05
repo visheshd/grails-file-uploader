@@ -30,9 +30,9 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     private void setupConfig() {
         Map logoConfig = [
             maxSize: 1024 * 1024 * 10,
-            allowedExtensions: ["jpg","jpeg"],
+            allowedExtensions: ["jpg", "jpeg", "png"],
             path: "./web-app/user-content/images/logo/",
-            container: "altruhelp_p"
+            container: "altruhelp_test"
         ]
         fileUploaderService.grailsApplication.config.fileuploader = [storageTypes: "", logo: logoConfig]
     }
@@ -199,7 +199,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
         assert clonedUfileInstance != null
         assert clonedUfileInstance
         assert clonedUfileInstance.id != null
-        assert clonedUfileInstance.name == "test-logo"
+        assert clonedUfileInstance.name == "test-logo.png"
         assert clonedUfileInstance.extension == "png"
         assert clonedUfileInstance.type == UFileType.LOCAL
         assert clonedUfileInstance.fileGroup == group
