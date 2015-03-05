@@ -1,7 +1,8 @@
 package com.lucastex.grails.fileuploader
 
 import com.lucastex.grails.fileuploader.cdn.BlobDetail
-
+import org.apache.commons.validator.UrlValidator
+import com.lucastex.grails.fileuploader.UFileType
 
 class FileUploaderController {
 
@@ -69,11 +70,19 @@ class FileUploaderController {
     def show() {
         def id = params.id  // Support both Long Id or mongo's ObjectId
         uFileInstance = UFile.get(id)
+        File file
         if (!uFileInstance) {
             response.sendError(404)
             return
         }
-        File file = new File(uFileInstance.path)
+
+        UrlValidator urlValidator = new UrlValidator()
+        if (urlValidator.isValid(uFileInstance.path) && uFileInstance.type != UFileType.LOCAL) {
+            file = fileUploaderService.getFileFromURL(uFileInstance.path, uFileInstance.name)
+        } else {
+            file = new File(uFileInstance.path)
+        }
+
         if(file.exists()) {
             response.setContentType("image/" + uFileInstance.extension)
             response.setContentLength(file.size().toInteger())
