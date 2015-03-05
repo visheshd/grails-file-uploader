@@ -40,7 +40,6 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     private File getTestFile(String fileName = "") {
         // A destination temporary path to copy our test file, since after ufile upload the file gets deleted
         fileName = fileName ?: "test-logo.png"
-        println "...."+fileName
         Path destination = FileSystems.getDefault().getPath(fileName)
         Path source = FileSystems.getDefault().getPath("test", "integration", "test-files", "logo.png")
 
@@ -167,4 +166,38 @@ class FileUploaderServiceSpec extends IntegrationSpec {
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()
     }
+
+    void "Test: cloneFile() when ufileInstance parameter not passed."() {
+        given:
+        def file = null
+
+        when: "When empty uFile parameter passed"
+        ufileInstance = fileUploaderService.cloneFile(group, file)
+
+        then: "Method should return null value"
+        assert ufileInstance == null
+    }
+
+    void "Test: cloneFile() when ufileInstance parameter passed."() {
+        given:
+        setupConfig()
+        FileUploaderServiceException exception = null
+        File testFile = getTestFile()
+
+        try {
+            ufileInstance = fileUploaderService.saveFile(group, testFile)
+        } catch (Exception e) {
+            exception = e
+        }
+
+        when: "When ufileInstance parameter passed"
+        UFile clonedUfileInstance = fileUploaderService.cloneFile(group, ufileInstance)
+
+        then: "Method should return cloned file"
+        assert clonedUfileInstance != null
+
+        cleanup: "Deleting test file for other test cases."
+        testFile?.delete()
+    }
+
 }

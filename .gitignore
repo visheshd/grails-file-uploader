@@ -27,6 +27,7 @@ web-app/js/*
 web-app/js/**/*
 web-app/images/*
 web-app/images/**/*
-
+web-app/user-content/*
+web-app/temp/*
 grails-file-uploader-*.zip
 grails-file-uploader-*.zip.sha1

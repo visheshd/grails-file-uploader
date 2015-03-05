@@ -64,13 +64,16 @@ class FileUploaderService {
         if (groupConfig.isEmpty()) {
             throw new FileUploaderServiceException("No config defined for group [$group]. Please define one in your Config file.")
         }
-
         int extensionAt = receivedFileName.lastIndexOf(".")
         if (extensionAt > -1) {
             fileName = customFileName ?: receivedFileName.substring(0, extensionAt)
             fileExtension = receivedFileName.substring(extensionAt + 1).toLowerCase().trim()
         } else {
             fileName = customFileName ?: receivedFileName
+            extensionAt = customFileName.lastIndexOf(".")
+            if (extensionAt > -1) {
+                fileExtension = customFileName.substring(extensionAt + 1).toLowerCase().trim()
+            }
         }
 
         if (!groupConfig.allowedExtensions[0].equals("*") && !groupConfig.allowedExtensions.contains(fileExtension)) {
@@ -362,6 +365,11 @@ class FileUploaderService {
         } finally {
             source?.close()
             destination?.close()
+
+            int extensionAt = destFile.name?.lastIndexOf(".")
+            if (extensionAt == -1 && ufileInstance.extension) {
+                name = ufileInstance.name + "." + ufileInstance.extension
+            }
 
             if (destFile.exists()) {
                 return this.saveFile(group, destFile, name, locale)
