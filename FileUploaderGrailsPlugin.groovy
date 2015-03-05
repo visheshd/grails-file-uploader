@@ -50,7 +50,7 @@ This plugin now supports uploading files to CDN for rackspace & amazon.
         def amazoneSecret = grailsApplication.config.fileuploader.AmazonSecret
 
         if(amazonKey instanceof ConfigObject || amazoneSecret instanceof ConfigObject) {
-            log.info "No username or key configured for file uploader amazon CDN service."
+            println "No username or key configured for file uploader amazon CDN service."
         } else {
             if(!metaClassInstance.respondsTo(null, "getAmazonFileUploaderInstance")) {
                 metaClassInstance.getAmazonFileUploaderInstance {
