@@ -64,6 +64,7 @@ class FileUploaderService {
         if (groupConfig.isEmpty()) {
             throw new FileUploaderServiceException("No config defined for group [$group]. Please define one in your Config file.")
         }
+
         int extensionAt = receivedFileName.lastIndexOf(".")
         if (extensionAt > -1) {
             fileName = customFileName ?: receivedFileName.substring(0, extensionAt)

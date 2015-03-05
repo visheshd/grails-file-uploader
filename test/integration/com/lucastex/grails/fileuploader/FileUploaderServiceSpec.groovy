@@ -9,7 +9,7 @@ import org.codehaus.groovy.grails.commons.DefaultGrailsApplication
 import spock.lang.*
 import grails.test.spock.IntegrationSpec
 import com.lucastex.grails.fileuploader.FileUploaderService
-import com.lucastex.grails.fileuploader.UFileType;
+import com.lucastex.grails.fileuploader.UFileType
 
 class FileUploaderServiceSpec extends IntegrationSpec {
 
@@ -30,7 +30,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     private void setupConfig() {
         Map logoConfig = [
             maxSize: 1024 * 1024 * 10,
-            allowedExtensions: ["jpg","jpeg","gif","png","JPG","JPEG","GIF","PNG"],
+            allowedExtensions: ["jpg","jpeg"],
             path: "./web-app/user-content/images/logo/",
             container: "altruhelp_p"
         ]
@@ -69,7 +69,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
         given:
         def file = null
 
-        when: "When empty file parameter passed"
+        when:
         ufileInstance = fileUploaderService.saveFile(group, file)
 
         then: "Method should return null value"
@@ -89,7 +89,8 @@ class FileUploaderServiceSpec extends IntegrationSpec {
         }
 
         then: "Method should throw exception for missing file uploader plugin configuration."
-        assert configException.message == "No config defined for group [${group}]. Please define one in your Config file."
+        assert configException.message == "No config defined for group [${group}]. " +
+            "Please define one in your Config file."
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()
@@ -110,7 +111,8 @@ class FileUploaderServiceSpec extends IntegrationSpec {
 
         then: "Method should throw exception for invalid file extention."
         String exceptionMessage = "The file you sent has an unauthorized extension (tif)." +
-                        " Allowed extensions for this upload are ${grailsApplication.config.fileuploader.logo.allowedExtensions}"
+            " Allowed extensions for this upload are " + 
+            "${grailsApplication.config.fileuploader.logo.allowedExtensions}"
 
         assert unauthorizedExtension?.message == exceptionMessage
 
@@ -121,7 +123,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     void "Test: saveFile() method should throw exception for Max file size."() {
         given: "Applying FileUploader configuration and updating file size configuration."
         setupConfig()
-        grailsApplication.config.fileuploader.logo.maxSize = 1024
+        grailsApplication.config.fileuploader.logo.maxSize = 1024 // 1kb
         FileUploaderServiceException maxFileSizeExtension = null
         File testFile = getTestFile()
 
@@ -190,11 +192,18 @@ class FileUploaderServiceSpec extends IntegrationSpec {
             exception = e
         }
 
-        when: "When ufileInstance parameter passed"
+        when:
         UFile clonedUfileInstance = fileUploaderService.cloneFile(group, ufileInstance)
 
         then: "Method should return cloned file"
         assert clonedUfileInstance != null
+        assert clonedUfileInstance
+        assert clonedUfileInstance.id != null
+        assert clonedUfileInstance.name == "test-logo"
+        assert clonedUfileInstance.extension == "png"
+        assert clonedUfileInstance.type == UFileType.LOCAL
+        assert clonedUfileInstance.fileGroup == group
+        assert clonedUfileInstance.provider == null
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()

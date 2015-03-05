@@ -22,9 +22,9 @@ grails.project.dependency.resolution = {
     }
     plugins {
         // Make sure to comment while packaging to allow Grails Mongodb plugin to install & hibernate to uninstall in parent app.
-        runtime (":hibernate:3.6.10.7") {
+        /*runtime (":hibernate:3.6.10.7") {
             export = false
-        }
+        }*/
         build(":tomcat:7.0.50", ":release:3.0.1", ":rest-client-builder:2.0.1") {
             export = false
         }
