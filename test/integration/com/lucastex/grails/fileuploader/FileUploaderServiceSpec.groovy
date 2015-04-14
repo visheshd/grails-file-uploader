@@ -56,154 +56,129 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     }
 
     def setup() {
-        fileUploaderService = new FileUploaderService()
+        /*fileUploaderService = new FileUploaderService()
         fileUploaderService.grailsApplication = grailsApplication
-        fileUploaderService.messageSource = getI18n()
+        fileUploaderService.messageSource = getI18n()*/
         group = "logo" // FileUploader Plugin Configuration group
     }
 
     def cleanup() {
     }
 
-    void "Test: saveFile() when empty file parameter passed."() {
+    void "test saveFile method, when empty file parameter passed."() {
         given:
         def file = null
 
-        when:
+        when: "Empty file parameter passed"
         ufileInstance = fileUploaderService.saveFile(group, file)
 
         then: "Method should return null value"
-        assert ufileInstance == null
+        ufileInstance == null
+        UFile.list() == []
     }
 
-    void "Test: saveFile() method should throw exception for missing fileuploader configuration."() {
+    void "test saveFile method , when file group configuration does not exists."() {
         given:
-        FileUploaderServiceException configException = null
         File testFile = getTestFile()
 
-        when:
-        try {
-            ufileInstance = fileUploaderService.saveFile(group, testFile)
-        } catch (Exception e) {
-            configException = e
-        }
+        when: "service method is called for a file with which dosen't belong's to any group configuration"
+        ufileInstance = fileUploaderService.saveFile(group, testFile)
 
         then: "Method should throw exception for missing file uploader plugin configuration."
-        assert configException.message == "No config defined for group [${group}]. " +
+        FileUploaderServiceException configException = thrown()
+        configException.message == "No config defined for group [${group}]. " +
             "Please define one in your Config file."
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()
     }
 
-    void "Test: saveFile() method should throw exception for invalid file extention."() {
+    void "test saveFile method, when a file with invalid extension is passed."() {
         given: "Applying FileUploader configuration and creating file with unauthorized extension"
         setupConfig()
-        FileUploaderServiceException unauthorizedExtension = null
         File testFile = getTestFile("test-logo.tif")
-
-        when:
-        try {
-            ufileInstance = fileUploaderService.saveFile(group, testFile)
-        } catch (Exception e) {
-            unauthorizedExtension = e
-        }
-
-        then: "Method should throw exception for invalid file extention."
         String exceptionMessage = "The file you sent has an unauthorized extension (tif)." +
             " Allowed extensions for this upload are " + 
             "${grailsApplication.config.fileuploader.logo.allowedExtensions}"
 
-        assert unauthorizedExtension?.message == exceptionMessage
+        when: "service method is called for a file with invalid extension"
+        ufileInstance = fileUploaderService.saveFile(group, testFile)
+
+        then: "Method should throw exception for invalid file extention."
+        FileUploaderServiceException unauthorizedException = thrown()
+        unauthorizedException?.message == exceptionMessage
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()
     }
 
-    void "Test: saveFile() method should throw exception for Max file size."() {
+    void "test saveFile method, when file with maximum size passed."() {
         given: "Applying FileUploader configuration and updating file size configuration."
         setupConfig()
         grailsApplication.config.fileuploader.logo.maxSize = 1024 // 1kb
-        FileUploaderServiceException maxFileSizeExtension = null
         File testFile = getTestFile()
+        String exceptionMessage = "Sent file is bigger than allowed. Max file size is 1 kb"
 
-        when:
-        try {
-            ufileInstance = fileUploaderService.saveFile(group, testFile)
-        } catch (Exception e) {
-            maxFileSizeExtension = e
-        }
+        when: "File with maximum size passed"
+        ufileInstance = fileUploaderService.saveFile(group, testFile)
 
         then: "Method should throw exception for Max file size."
-        String exceptionMessage = "Sent file is bigger than allowed. Max file size is 1 kb"
-        assert maxFileSizeExtension?.message == exceptionMessage
+        FileUploaderServiceException maxFileSizeException= thrown()
+        maxFileSizeException?.message == exceptionMessage
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()
     }
 
-    void "Test: saveFile() method should save file successfully."() {
+    void "test saveFile method, with file which pass all validations."() {
         given: "Applying FileUploader configuration."
         setupConfig()
-        FileUploaderServiceException exception = null
         File testFile = getTestFile()
 
-        when:
-        try {
-            ufileInstance = fileUploaderService.saveFile(group, testFile)
-        } catch (Exception e) {
-            exception = e
-        }
+        when: "File with all validations passed."
+        ufileInstance = fileUploaderService.saveFile(group, testFile)
 
-        then: "Method should create UFile Instance successfully."
-        assert exception == null
-        assert ufileInstance
-        assert ufileInstance.id != null
-        assert ufileInstance.name == "test-logo"
-        assert ufileInstance.extension == "png"
-        assert ufileInstance.type == UFileType.LOCAL
-        assert ufileInstance.fileGroup == group
-        assert ufileInstance.provider == null
+        then: "Method should create UFile instance and file should be moved to configured location locally"
+        ufileInstance
+        ufileInstance.id != null
+        ufileInstance.name == "test-logo"
+        ufileInstance.extension == "png"
+        ufileInstance.type == UFileType.LOCAL
+        ufileInstance.fileGroup == group
+        ufileInstance.provider == null
+        ufileInstance.path =~ "/web-app/user-content/images/logo/"
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()
     }
 
-    void "Test: cloneFile() when ufileInstance parameter not passed."() {
-        given:
-        def file = null
+    void "test cloneFile method, when ufileInstance parameter not passed."() {
 
         when: "When empty uFile parameter passed"
-        ufileInstance = fileUploaderService.cloneFile(group, file)
+        ufileInstance = fileUploaderService.cloneFile(group, null)
 
         then: "Method should return null value"
-        assert ufileInstance == null
+        ufileInstance == null
     }
 
-    void "Test: cloneFile() when ufileInstance parameter passed."() {
+    void "test cloneFile method for valid UFile instance"() {
         given:
         setupConfig()
-        FileUploaderServiceException exception = null
         File testFile = getTestFile()
+        ufileInstance = fileUploaderService.saveFile(group, testFile)
 
-        try {
-            ufileInstance = fileUploaderService.saveFile(group, testFile)
-        } catch (Exception e) {
-            exception = e
-        }
-
-        when:
+        when: "UFileInstance parameter passed"
         UFile clonedUfileInstance = fileUploaderService.cloneFile(group, ufileInstance)
 
         then: "Method should return cloned file"
-        assert clonedUfileInstance != null
-        assert clonedUfileInstance
-        assert clonedUfileInstance.id != null
-        assert clonedUfileInstance.name == "test-logo.png"
-        assert clonedUfileInstance.extension == "png"
-        assert clonedUfileInstance.type == UFileType.LOCAL
-        assert clonedUfileInstance.fileGroup == group
-        assert clonedUfileInstance.provider == null
+        clonedUfileInstance
+        clonedUfileInstance.id != null
+        clonedUfileInstance.name == "test-logo.png"
+        clonedUfileInstance.extension == "png"
+        clonedUfileInstance.type == UFileType.LOCAL
+        clonedUfileInstance.fileGroup == group
+        clonedUfileInstance.provider == null
+        ufileInstance.path =~ "/web-app/user-content/images/logo/"
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()
