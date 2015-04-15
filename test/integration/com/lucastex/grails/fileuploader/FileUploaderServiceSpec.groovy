@@ -1,15 +1,16 @@
 package com.lucastex.grails.fileuploader
 
 
-import org.springframework.context.MessageSource
-import org.springframework.context.support.ResourceBundleMessageSource
+import grails.test.spock.IntegrationSpec
+
 import java.nio.file.FileSystems
 import java.nio.file.Path
+import org.apache.commons.fileupload.FileItem
+import org.apache.commons.fileupload.disk.DiskFileItemFactory
+import org.apache.commons.io.IOUtils
 import org.codehaus.groovy.grails.commons.DefaultGrailsApplication
+import org.springframework.web.multipart.commons.CommonsMultipartFile
 import spock.lang.*
-import grails.test.spock.IntegrationSpec
-import com.lucastex.grails.fileuploader.FileUploaderService
-import com.lucastex.grails.fileuploader.UFileType
 
 class FileUploaderServiceSpec extends IntegrationSpec {
 
@@ -18,17 +19,10 @@ class FileUploaderServiceSpec extends IntegrationSpec {
 
     String group
     UFile ufileInstance
-
-    MessageSource getI18n() {
-        URL url = new File('grails-app/i18n').toURI().toURL()
-        MessageSource messageSource = new ResourceBundleMessageSource()
-        messageSource.bundleClassLoader = new URLClassLoader(url)
-        messageSource.basename = 'messages'
-        return messageSource
-    }
+    Map logoConfig
 
     private void setupConfig() {
-        Map logoConfig = [
+        logoConfig = [
             maxSize: 1024 * 1024 * 10,
             allowedExtensions: ["jpg", "jpeg", "png"],
             path: "./web-app/user-content/images/logo/",
@@ -40,6 +34,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     private File getTestFile(String fileName = "") {
         // A destination temporary path to copy our test file, since after ufile upload the file gets deleted
         fileName = fileName ?: "test-logo.png"
+
         Path destination = FileSystems.getDefault().getPath(fileName)
         Path source = FileSystems.getDefault().getPath("test", "integration", "test-files", "logo.png")
 
@@ -56,9 +51,6 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     }
 
     def setup() {
-        /*fileUploaderService = new FileUploaderService()
-        fileUploaderService.grailsApplication = grailsApplication
-        fileUploaderService.messageSource = getI18n()*/
         group = "logo" // FileUploader Plugin Configuration group
     }
 
@@ -66,6 +58,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     }
 
     void "test saveFile method, when empty file parameter passed."() {
+
         given:
         def file = null
 
@@ -78,6 +71,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     }
 
     void "test saveFile method , when file group configuration does not exists."() {
+
         given:
         File testFile = getTestFile()
 
@@ -86,20 +80,19 @@ class FileUploaderServiceSpec extends IntegrationSpec {
 
         then: "Method should throw exception for missing file uploader plugin configuration."
         FileUploaderServiceException configException = thrown()
-        configException.message == "No config defined for group [${group}]. " +
-            "Please define one in your Config file."
+        configException.message == "No config defined for group [${group}]. Please define one in your Config file."
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()
     }
 
     void "test saveFile method, when a file with invalid extension is passed."() {
+
         given: "Applying FileUploader configuration and creating file with unauthorized extension"
         setupConfig()
         File testFile = getTestFile("test-logo.tif")
-        String exceptionMessage = "The file you sent has an unauthorized extension (tif)." +
-            " Allowed extensions for this upload are " + 
-            "${grailsApplication.config.fileuploader.logo.allowedExtensions}"
+        String exceptionMessage = fileUploaderService.messageSource.getMessage("fileupload.upload.unauthorizedExtension",
+            ["tif", logoConfig.allowedExtensions] as Object[], null)
 
         when: "service method is called for a file with invalid extension"
         ufileInstance = fileUploaderService.saveFile(group, testFile)
@@ -113,11 +106,15 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     }
 
     void "test saveFile method, when file with maximum size passed."() {
+
         given: "Applying FileUploader configuration and updating file size configuration."
         setupConfig()
         grailsApplication.config.fileuploader.logo.maxSize = 1024 // 1kb
         File testFile = getTestFile()
-        String exceptionMessage = "Sent file is bigger than allowed. Max file size is 1 kb"
+
+        def maxSizeInKb = ((int) (logoConfig.maxSize)) / 1024
+        String exceptionMessage = fileUploaderService.messageSource.getMessage("fileupload.upload.fileBiggerThanAllowed",
+            [maxSizeInKb] as Object[], null)
 
         when: "File with maximum size passed"
         ufileInstance = fileUploaderService.saveFile(group, testFile)
@@ -131,6 +128,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     }
 
     void "test saveFile method, with file which pass all validations."() {
+
         given: "Applying FileUploader configuration."
         setupConfig()
         File testFile = getTestFile()
@@ -152,6 +150,99 @@ class FileUploaderServiceSpec extends IntegrationSpec {
         testFile?.delete()
     }
 
+    void "test saveFile method, with custom file name parameter passed."() {
+
+        given: "Applying FileUploader configuration."
+        setupConfig()
+        File testFile = getTestFile()
+
+        when: "File with all validations passed."
+        ufileInstance = fileUploaderService.saveFile(group, testFile, "custom-test-logo")
+
+        then: "Method should create UFile instance and custom file name should be applied."
+        ufileInstance
+        ufileInstance.id != null
+        ufileInstance.name == "custom-test-logo"
+        ufileInstance.extension == "png"
+        ufileInstance.type == UFileType.LOCAL
+        ufileInstance.fileGroup == group
+        ufileInstance.provider == null
+        ufileInstance.path =~ logoConfig.path // Check setupConfig for details
+
+        cleanup: "Deleting test file for other test cases."
+        testFile?.delete()
+    }
+
+    void "test saveFile method, with custom file name string contains extention parameter passed."() {
+
+        given: "Applying FileUploader configuration."
+        setupConfig()
+        File testFile = getTestFile()
+
+        when: "File with all validations passed."
+        ufileInstance = fileUploaderService.saveFile(group, testFile, "custom-test-logo.png")
+
+        then: "Method should create UFile instance and custom file name with removed extention should be applied."
+        ufileInstance
+        ufileInstance.id != null
+        ufileInstance.name == "custom-test-logo"
+        ufileInstance.extension == "png"
+        ufileInstance.type == UFileType.LOCAL
+        ufileInstance.fileGroup == group
+        ufileInstance.provider == null
+        ufileInstance.path =~ logoConfig.path // Check setupConfig for details
+
+        cleanup: "Deleting test file for other test cases."
+        testFile?.delete()
+    }
+
+    void "test saveFile method, with file of Commons Multipart File type."() {
+
+        given: "Applying FileUploader configuration and creating CommonsMultipart test file."
+        setupConfig()
+        DiskFileItemFactory factory = new DiskFileItemFactory()
+        FileItem fileItem = factory.createItem( "file", "multipart/form-data", false, "logo.png" )
+        IOUtils.copy(new FileInputStream(getTestFile()), fileItem.getOutputStream())
+        CommonsMultipartFile testFile = new CommonsMultipartFile(fileItem)
+
+
+        when: "CommonsMultipart file with custom name parameter passed."
+        ufileInstance = fileUploaderService.saveFile(group, testFile, "custom-test-logo")
+
+        then: "Method should create UFile instance and custom file name with removed extention should be applied."
+        ufileInstance
+        ufileInstance.id != null
+        ufileInstance.name == "custom-test-logo"
+        ufileInstance.extension == "png"
+        ufileInstance.type == UFileType.LOCAL
+        ufileInstance.fileGroup == group
+        ufileInstance.provider == null
+        ufileInstance.path =~ logoConfig.path // Check setupConfig for details
+    }
+    void "test saveFile method, with CommonsMultipart File and custom file name parameter contains extention passed."() {
+
+        given: "Applying FileUploader configuration and creating CommonsMultipart test file."
+        setupConfig()
+        DiskFileItemFactory factory = new DiskFileItemFactory()
+        FileItem fileItem = factory.createItem( "file", "multipart/form-data", false, "logo.png" )
+        IOUtils.copy(new FileInputStream(getTestFile()), fileItem.getOutputStream())
+        CommonsMultipartFile testFile = new CommonsMultipartFile(fileItem)
+
+
+        when: "CommonsMultipart file with custom name parameter contains extention passed."
+        ufileInstance = fileUploaderService.saveFile(group, testFile, "custom-test-logo.png")
+
+        then: "Method should create UFile instance and custom file name with removed extention should be applied."
+        ufileInstance
+        ufileInstance.id != null
+        ufileInstance.name == "custom-test-logo"
+        ufileInstance.extension == "png"
+        ufileInstance.type == UFileType.LOCAL
+        ufileInstance.fileGroup == group
+        ufileInstance.provider == null
+        ufileInstance.path =~ logoConfig.path // Check setupConfig for details
+    }
+
     void "test cloneFile method, when ufileInstance parameter not passed."() {
 
         when: "When empty uFile parameter passed"
@@ -162,6 +253,7 @@ class FileUploaderServiceSpec extends IntegrationSpec {
     }
 
     void "test cloneFile method for valid UFile instance"() {
+
         given:
         setupConfig()
         File testFile = getTestFile()
@@ -173,12 +265,12 @@ class FileUploaderServiceSpec extends IntegrationSpec {
         then: "Method should return cloned file"
         clonedUfileInstance
         clonedUfileInstance.id != null
-        clonedUfileInstance.name == "test-logo.png"
+        clonedUfileInstance.name == "test-logo"
         clonedUfileInstance.extension == "png"
         clonedUfileInstance.type == UFileType.LOCAL
         clonedUfileInstance.fileGroup == group
         clonedUfileInstance.provider == null
-        ufileInstance.path =~ "/web-app/user-content/images/logo/"
+        ufileInstance.path =~ logoConfig.path // Check setupConfig for details
 
         cleanup: "Deleting test file for other test cases."
         testFile?.delete()

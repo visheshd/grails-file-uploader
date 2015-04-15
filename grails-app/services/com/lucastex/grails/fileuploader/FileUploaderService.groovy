@@ -84,6 +84,11 @@ class FileUploaderService {
             throw new FileUploaderServiceException(msg)
         }
 
+        extensionAt = fileName.lastIndexOf(".")
+        if (extensionAt > -1) {
+            fileName = fileName.substring(0, extensionAt)
+        }
+
         /**
          * If maxSize config exists
          */
