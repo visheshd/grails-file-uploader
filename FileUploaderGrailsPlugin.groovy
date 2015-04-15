@@ -1,7 +1,10 @@
 import com.lucastex.grails.fileuploader.FileUploaderService
 import com.lucastex.grails.fileuploader.cdn.amazon.AmazonCDNFileUploaderImpl
+import org.apache.commons.logging.LogFactory
 
 class FileUploaderGrailsPlugin {
+
+    private static final log = LogFactory.getLog(this)
 
     def version = "2.4.1"
     def grailsVersion = "2.1 > *"
@@ -28,9 +31,9 @@ This plugin now supports uploading files to CDN for rackspace & amazon.
     def watchedResources = "file:./grails-app/services/*FileUploaderService.groovy"
 
     def doWithDynamicMethods = { ctx ->
-        println "\nConfiguring file uploader plugin ..."
+        log.info "\nConfiguring file uploader plugin ..."
         addServiceMethods(ctx)
-        println "... finished configuring file uploader plugin\n"
+        log.info "... finished configuring file uploader plugin\n"
     }
 
     def onChange = { event ->
@@ -40,8 +43,7 @@ This plugin now supports uploading files to CDN for rackspace & amazon.
     }
 
     private void addServiceMethods(ctx) {
-        println "\nAdding dynamic methods ..."
-        println ""
+        log.info "\nAdding dynamic methods ..."
         def grailsApplication = ctx.grailsApplication
 
         MetaClass metaClassInstance = FileUploaderService.class.metaClass

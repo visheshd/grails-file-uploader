@@ -71,6 +71,10 @@ class FileUploaderService {
             fileExtension = receivedFileName.substring(extensionAt + 1).toLowerCase().trim()
         } else {
             fileName = customFileName ?: receivedFileName
+            extensionAt = customFileName.lastIndexOf(".")
+            if (extensionAt > -1) {
+                fileExtension = customFileName.substring(extensionAt + 1).toLowerCase().trim()
+            }
         }
 
         if (!groupConfig.allowedExtensions[0].equals("*") && !groupConfig.allowedExtensions.contains(fileExtension)) {
@@ -78,6 +82,11 @@ class FileUploaderService {
                     [fileExtension, groupConfig.allowedExtensions] as Object[], locale)
             log.debug msg
             throw new FileUploaderServiceException(msg)
+        }
+
+        extensionAt = fileName.lastIndexOf(".")
+        if (extensionAt > -1) {
+            fileName = fileName.substring(0, extensionAt)
         }
 
         /**
@@ -362,6 +371,11 @@ class FileUploaderService {
         } finally {
             source?.close()
             destination?.close()
+
+            int extensionAt = destFile.name?.lastIndexOf(".")
+            if (extensionAt == -1 && ufileInstance.extension) {
+                name = ufileInstance.name + "." + ufileInstance.extension
+            }
 
             if (destFile.exists()) {
                 return this.saveFile(group, destFile, name, locale)
