@@ -1,6 +1,6 @@
 class FileUploaderGrailsPlugin {
 
-    def version = "2.4.6"
+    def version = "2.4.9"
     def grailsVersion = "2.1 > *"
     def groupId = "com.cc.plugins"
     def pluginExcludes = [
@@ -13,7 +13,7 @@ class FileUploaderGrailsPlugin {
     def title = "File Uploader Grails Plugin"
     def description = """This plugin provides easy integration with your Grails application
             to handle file uploading with multiple configuration.
-            
+
             This is a heavily modified version with updates from visheshd, danieldbower, SAgrawal14"
             This plugin also supports uploading files to CDN for Rackspace & Amazon"""
 

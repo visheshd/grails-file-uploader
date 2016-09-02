@@ -15,7 +15,18 @@ target-eclipse/*
 *.ipr
 *.iws
 .idea/*
-.idea/**/*
+
+# All gradle related files should be ignored for Grails 2.x version of this plugin.
+.gradle
+gradle/*
+gradlew
+gradlew.bat
+build/*
+classes/*
+.asscache
+settings.gradle
+.DS_Store
+out/
 
 #ignoro logs
 *.log

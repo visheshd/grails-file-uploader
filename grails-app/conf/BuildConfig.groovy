@@ -22,16 +22,19 @@ grails.project.dependency.resolution = {
     }
 
     dependencies {
-        compile ("org.apache.jclouds.provider:cloudfiles-us:1.7.2", "org.apache.jclouds:jclouds-compute:1.7.2",
-                "org.apache.jclouds.provider:aws-s3:1.7.2") {
+        compile ("org.apache.jclouds.provider:cloudfiles-us:1.8.1", "org.apache.jclouds:jclouds-compute:1.8.1",
+                "org.apache.jclouds.provider:aws-s3:1.8.1") {
                     excludes "jclouds-core", "guice"
                 }
-        compile("org.apache.jclouds:jclouds-core:1.7.2")
+        compile("org.apache.jclouds:jclouds-core:1.8.1")
+        compile("commons-fileupload:commons-fileupload:1.3.1")
+        compile("com.google.cloud:gcloud-java-storage:0.2.7")
+        compile("com.google.guava:guava:19.0")
     }
 
     plugins {
         // Make sure to comment while packaging to allow Grails Mongodb plugin to install & hibernate to uninstall in parent app.
-        runtime (":hibernate:3.6.10.14") {
+        runtime (":hibernate4:5.0.0.RC1") {
             export = false
         }
         build(":tomcat:7.0.52.1", ":release:3.0.1", ":rest-client-builder:2.0.1", ":codenarc:0.22") {

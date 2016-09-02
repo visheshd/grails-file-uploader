@@ -1,4 +1,4 @@
-import com.lucastex.grails.fileuploader.RackspaceCDNFileUploaderService
+import com.causecode.fileuploader.RackspaceCDNFileUploaderService
 
 class FileUploaderBootStrap {
 
