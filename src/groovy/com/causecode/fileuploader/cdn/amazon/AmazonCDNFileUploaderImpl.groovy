@@ -1,5 +1,6 @@
 package com.causecode.fileuploader.cdn.amazon
 
+import com.causecode.fileuploader.UploadFailureException
 import com.causecode.fileuploader.cdn.CDNFileUploader
 import grails.util.Holders
 import org.apache.commons.logging.Log
@@ -20,13 +21,13 @@ import org.jclouds.s3.options.CopyObjectOptions
 
 import javax.activation.MimetypesFileTypeMap
 
-class AMAZONCDNFileUploaderImpl extends CDNFileUploader {
+class AmazonCDNFileUploaderImpl extends CDNFileUploader {
 
     private static Log log = LogFactory.getLog(this)
 
     AWSS3Client client
 
-    AMAZONCDNFileUploaderImpl() {
+    AmazonCDNFileUploaderImpl() {
         String key = Holders.getFlatConfig()["fileuploader.AmazonKey"]
         String secret = Holders.getFlatConfig()["fileuploader.AmazonSecret"]
 
@@ -133,7 +134,12 @@ class AMAZONCDNFileUploaderImpl extends CDNFileUploader {
         S3Object s3ObjectToUpdate = new S3ObjectImpl(mutableObjectMetadata)
 
         s3ObjectToUpdate.setPayload(file)
-        client.putObject(containerName, s3ObjectToUpdate, fileOptions)
+        try {
+            client.putObject(containerName, s3ObjectToUpdate, fileOptions)
+        } catch (Exception e) {
+            log.debug e.message
+            throw new UploadFailureException(fileName, containerName)
+        }
         return true
     }
 

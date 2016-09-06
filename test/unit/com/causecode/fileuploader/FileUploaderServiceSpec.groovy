@@ -8,8 +8,8 @@
 
 package com.causecode.fileuploader
 
-import com.causecode.fileuploader.cdn.amazon.AMAZONCDNFileUploaderImpl
-import com.causecode.fileuploader.cdn.google.GOOGLECDNFileUploaderImpl
+import com.causecode.fileuploader.cdn.amazon.AmazonCDNFileUploaderImpl
+import com.causecode.fileuploader.cdn.google.GoogleCDNFileUploaderImpl
 import grails.test.mixin.Mock
 import grails.test.mixin.TestFor
 import grails.test.mixin.TestMixin
@@ -24,19 +24,19 @@ import spock.lang.Unroll
 class FileUploaderServiceSpec extends Specification {
 
     void setup() {
-        AMAZONCDNFileUploaderImpl.metaClass.authenticate = { ->
+        AmazonCDNFileUploaderImpl.metaClass.authenticate = { ->
             return true
         }
 
-        GOOGLECDNFileUploaderImpl.metaClass.authenticate = { ->
+        GoogleCDNFileUploaderImpl.metaClass.authenticate = { ->
             return true
         }
 
-        AMAZONCDNFileUploaderImpl.metaClass.close = { ->
+        AmazonCDNFileUploaderImpl.metaClass.close = { ->
             return true
         }
 
-        GOOGLECDNFileUploaderImpl.metaClass.close = { ->
+        GoogleCDNFileUploaderImpl.metaClass.close = { ->
             return true
         }
 
@@ -48,11 +48,11 @@ class FileUploaderServiceSpec extends Specification {
             return true
         }
 
-        AMAZONCDNFileUploaderImpl.metaClass.getTemporaryURL = getTemporaryURL
-        GOOGLECDNFileUploaderImpl.metaClass.getTemporaryURL = getTemporaryURL
+        AmazonCDNFileUploaderImpl.metaClass.getTemporaryURL = getTemporaryURL
+        GoogleCDNFileUploaderImpl.metaClass.getTemporaryURL = getTemporaryURL
 
-        AMAZONCDNFileUploaderImpl.metaClass.uploadFile = uploadFile
-        GOOGLECDNFileUploaderImpl.metaClass.uploadFile = uploadFile
+        AmazonCDNFileUploaderImpl.metaClass.uploadFile = uploadFile
+        GoogleCDNFileUploaderImpl.metaClass.uploadFile = uploadFile
     }
 
     void "test isPublicGroup for various file groups"() {

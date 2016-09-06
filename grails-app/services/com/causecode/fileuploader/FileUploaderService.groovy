@@ -2,7 +2,7 @@ package com.causecode.fileuploader
 
 import com.causecode.fileuploader.cdn.BlobDetail
 import com.causecode.fileuploader.cdn.CDNFileUploader
-import com.causecode.fileuploader.cdn.amazon.AMAZONCDNFileUploaderImpl
+import com.causecode.fileuploader.cdn.amazon.AmazonCDNFileUploaderImpl
 import com.causecode.fileuploader.util.Time
 import grails.util.Holders
 import groovy.io.FileType
@@ -44,9 +44,15 @@ class FileUploaderService {
      */
     CDNFileUploader getProviderInstance(String providerName) {
         String packageName = "com.causecode.fileuploader.cdn.${providerName.toLowerCase()}."
-        String providerClassName = packageName + "${providerName}CDNFileUploaderImpl"
+        String classNamePrefix = providerName.toLowerCase().capitalize()
+        String providerClassName = packageName + "${classNamePrefix}CDNFileUploaderImpl"
 
-        return Class.forName(providerClassName)?.newInstance()
+        try {
+            return Class.forName(providerClassName)?.newInstance()
+        } catch (ClassNotFoundException e) {
+            log.debug e.message
+            throw new ProviderNotFoundException("Provider $providerName not found.")
+        }
     }
 
     String getNewTemporaryDirectoryPath() {
@@ -61,6 +67,9 @@ class FileUploaderService {
     }
 
     /**
+     * This method is used to save files to CDN providers.
+     * TODO Need to fix this method's size.
+     * 
      * @param group
      * @param file
      * @param customFileName Custom file name without extension.
@@ -204,17 +213,21 @@ class FileUploaderService {
             expireOn = new Date(new Date().time + expirationPeriod * 1000)
 
             if (cdnProvider != CDNProvider.RACKSPACE) {
-                CDNFileUploader fileUploaderInstance = getProviderInstance(cdnProvider.name())
-                fileUploaderInstance.uploadFile(containerName, tempFile, tempFileFullName, makePublic, expirationPeriod)
+                CDNFileUploader fileUploaderInstance
+                try {
+                    fileUploaderInstance = getProviderInstance(cdnProvider.name())
+                    fileUploaderInstance.uploadFile(containerName, tempFile, tempFileFullName, makePublic, expirationPeriod)
 
-                if (makePublic) {
-                    path = fileUploaderInstance.getPermanentURL(containerName, tempFileFullName)
-                    expireOn = null
-                } else {
-                    path = fileUploaderInstance.getTemporaryURL(containerName, tempFileFullName, expirationPeriod)
+                    if (makePublic) {
+                        path = fileUploaderInstance.getPermanentURL(containerName, tempFileFullName)
+                        expireOn = null
+                    } else {
+                        path = fileUploaderInstance.getTemporaryURL(containerName, tempFileFullName, expirationPeriod)
+                    }
+                } finally {
+                    fileUploaderInstance?.close()
                 }
 
-                fileUploaderInstance.close()
             } else {
 //                String publicBaseURL = rackspaceCDNFileUploaderService.uploadFileToCDN(containerName, tempFile, tempFileFullName)
 //                path = publicBaseURL + "/" + tempFileFullName
@@ -295,9 +308,13 @@ class FileUploaderService {
             String containerName = ufileInstance.container
 
             if (ufileInstance.provider != CDNProvider.RACKSPACE) {
-                CDNFileUploader fileUploaderInstance = getProviderInstance(ufileInstance.provider.name())
-                fileUploaderInstance.deleteFile(containerName, ufileInstance.fullName)
-                fileUploaderInstance.close()
+                CDNFileUploader fileUploaderInstance
+                try {
+                    fileUploaderInstance = getProviderInstance(ufileInstance.provider.name())
+                    fileUploaderInstance.deleteFile(containerName, ufileInstance.fullName)
+                } finally {
+                    fileUploaderInstance?.close()
+                }
             } else {
                 //rackspaceCDNFileUploaderService.deleteFile(containerName, ufileInstance.fullName)
             }
@@ -550,7 +567,7 @@ class FileUploaderService {
      * @author Priyanshu Chauhan
      */
     void updateAllUFileCacheHeader(CDNProvider cdnProvider = CDNProvider.AMAZON) {
-        AMAZONCDNFileUploaderImpl amazonFileUploaderInstance = new AMAZONCDNFileUploaderImpl()
+        AmazonCDNFileUploaderImpl amazonFileUploaderInstance = new AmazonCDNFileUploaderImpl()
         amazonFileUploaderInstance.authenticate()
 
         // TODO: Add support for Rackspace
@@ -628,18 +645,22 @@ class FileUploaderService {
 
             try {
                 if (toCDNProvider != CDNProvider.RACKSPACE) {
-                    CDNFileUploader fileUploaderInstance = getProviderInstance(toCDNProvider.name())
-                    fileUploaderInstance.uploadFile(containerName, downloadedFile, uFile.fullName, makePublic,
-                            getExpirationPeriod(uFile.fileGroup))
-
-                    if (makePublic) {
-                        savedUrlPath = fileUploaderInstance.getPermanentURL(containerName, uFile.fullName)
-                    } else {
-                        savedUrlPath = fileUploaderInstance.getTemporaryURL(containerName, uFile.fullName,
+                    CDNFileUploader fileUploaderInstance
+                    try {
+                        fileUploaderInstance = getProviderInstance(toCDNProvider.name())
+                        fileUploaderInstance.uploadFile(containerName, downloadedFile, uFile.fullName, makePublic,
                                 getExpirationPeriod(uFile.fileGroup))
-                    }
 
-                    fileUploaderInstance.close()
+                        if (makePublic) {
+                            savedUrlPath = fileUploaderInstance.getPermanentURL(containerName, uFile.fullName)
+                        } else {
+                            savedUrlPath = fileUploaderInstance.getTemporaryURL(containerName, uFile.fullName,
+                                    getExpirationPeriod(uFile.fileGroup))
+                        }
+
+                    } finally {
+                        fileUploaderInstance?.close()
+                    }
                 } else {
 //                    publicBaseURL = rackspaceCDNFileUploaderService.uploadFileToCDN(containerName, downloadedFile, 
 //                            uFile.fullName)
