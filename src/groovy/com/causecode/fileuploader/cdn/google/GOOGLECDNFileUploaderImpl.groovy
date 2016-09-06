@@ -99,7 +99,7 @@ class GOOGLECDNFileUploaderImpl extends CDNFileUploader {
     String getTemporaryURL(String containerName, String fileName, long expiration) {
         Blob blob = getBlob(containerName, fileName)
 
-        return blob?.signUrl(expiration, TimeUnit.MILLISECONDS)?.toString()
+        return blob?.signUrl(expiration, TimeUnit.SECONDS)?.toString()
     }
 
     @Override
@@ -113,7 +113,8 @@ class GOOGLECDNFileUploaderImpl extends CDNFileUploader {
 
         BlobId blobId = BlobId.of(containerName, fileName)
         BlobInfo blobInfo = BlobInfo.builder(blobId).contentType(contentType).build()
-        Blob blob = gStorage.create(blobInfo, file.getText('UTF-8').bytes)
+
+        Blob blob = gStorage.create(blobInfo, file.bytes)
 
         if (!blob || !blob.exists(Blob.BlobSourceOption.generationMatch())) {
             log.warn "Could not upload file $fileName"

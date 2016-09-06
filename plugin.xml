@@ -6,7 +6,7 @@
             to handle file uploading with multiple configuration.
 
             This is a heavily modified version with updates from visheshd, danieldbower, SAgrawal14"
-            This plugin also supports uploading files to CDN for Rackspace &amp; Amazon</description>
+            This plugin also supports uploading files to CDN for Google &amp; Amazon</description>
   <documentation>https://github.com/causecode/grails-file-uploader</documentation>
   <type>FileUploaderGrailsPlugin</type>
   <resources>

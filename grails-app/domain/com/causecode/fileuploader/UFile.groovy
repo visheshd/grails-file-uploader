@@ -31,6 +31,10 @@ class UFile implements Serializable {
         provider nullable: true
     }
 
+    static mapping = {
+        path sqlType: 'text'
+    }
+
     def afterDelete() {
         /*
          * Using Holder class to get service instead of injecting it as dependency injection with transient modifier.
@@ -69,7 +73,7 @@ class UFile implements Serializable {
      * appended if the current environment is not the Production environment. This is used to keep the containers
      * separate for all environment.
      *
-     * @param containerName Name of the Amazon file container or Rackspace bucket.
+     * @param containerName Name of the Amazon file container or Google bucket.
      * @return Modified container name as described above.
      */
     static String containerName(String containerName) {

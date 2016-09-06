@@ -19,16 +19,24 @@ grails.project.dependency.resolution = {
         grailsPlugins()
         grailsCentral()
         mavenCentral()
+        mavenLocal()
     }
 
     dependencies {
         compile ("org.apache.jclouds.provider:cloudfiles-us:1.8.1", "org.apache.jclouds:jclouds-compute:1.8.1",
                 "org.apache.jclouds.provider:aws-s3:1.8.1") {
-                    excludes "jclouds-core", "guice"
+                    excludes "jclouds-core"
                 }
-        compile("org.apache.jclouds:jclouds-core:1.8.1")
+
+        compile("org.apache.jclouds:jclouds-core:1.8.1", "com.google.cloud:google-cloud-storage:0.3.0") {
+            /*
+             * Comment this while compiling, running as an standalone app or running test-cases.
+             * But un-comment while publishing i.e for command `grails maven-install` or `grails maven-deploy`.
+             */
+            //excludes 'guice', 'http-client'
+        }
+
         compile("commons-fileupload:commons-fileupload:1.3.1")
-        compile("com.google.cloud:gcloud-java-storage:0.2.7")
         compile("com.google.guava:guava:19.0")
     }
 

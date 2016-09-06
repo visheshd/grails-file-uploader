@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 2.4.9
+1. Added support for Google Cloud Storage(GCS).
+2. Removed support for RackSpace due to incompatibility with new JClouds library.
+
 ## Version 2.4.3
 
 1. Added support for configurable public URL for Amazon S3

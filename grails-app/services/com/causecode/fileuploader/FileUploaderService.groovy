@@ -16,7 +16,7 @@ class FileUploaderService {
     private static String baseTemporaryDirectoryPath
 
     def messageSource
-    def rackspaceCDNFileUploaderService
+    //def rackspaceCDNFileUploaderService
 
     @PostConstruct
     void postConstruct() {
@@ -216,8 +216,8 @@ class FileUploaderService {
 
                 fileUploaderInstance.close()
             } else {
-                String publicBaseURL = rackspaceCDNFileUploaderService.uploadFileToCDN(containerName, tempFile, tempFileFullName)
-                path = publicBaseURL + "/" + tempFileFullName
+//                String publicBaseURL = rackspaceCDNFileUploaderService.uploadFileToCDN(containerName, tempFile, tempFileFullName)
+//                path = publicBaseURL + "/" + tempFileFullName
             }
         } else {
             // Base path to save file
@@ -299,7 +299,7 @@ class FileUploaderService {
                 fileUploaderInstance.deleteFile(containerName, ufileInstance.fullName)
                 fileUploaderInstance.close()
             } else {
-                rackspaceCDNFileUploaderService.deleteFile(containerName, ufileInstance.fullName)
+                //rackspaceCDNFileUploaderService.deleteFile(containerName, ufileInstance.fullName)
             }
             return true
         }
@@ -442,8 +442,8 @@ class FileUploaderService {
         }
         containerName = UFile.containerName(containerName)
 
-        rackspaceCDNFileUploaderService.uploadFilesToCloud(containerName, blobDetailList)
-        String baseURL = rackspaceCDNFileUploaderService.cdnEnableContainer(containerName)
+//        rackspaceCDNFileUploaderService.uploadFilesToCloud(containerName, blobDetailList)
+//        String baseURL = rackspaceCDNFileUploaderService.cdnEnableContainer(containerName)
 
         blobDetailList.each {
             UFile uploadUFileInstance = ufileInstanceList.find { ufileInstance ->
@@ -622,40 +622,37 @@ class FileUploaderService {
             UFileMoveHistory uFileHistory = UFileMoveHistory.findOrCreateByUfile(uFile)
 
             if (!downloadedFile.exists()) {
-                log.info "Downloaded file doesn't not exist."
+                log.debug "Downloaded file doesn't not exist."
                 return
             }
 
             try {
                 if (toCDNProvider != CDNProvider.RACKSPACE) {
                     CDNFileUploader fileUploaderInstance = getProviderInstance(toCDNProvider.name())
-                    fileUploaderInstance.uploadFile(containerName, downloadedFile, uFile.name, makePublic,
+                    fileUploaderInstance.uploadFile(containerName, downloadedFile, uFile.fullName, makePublic,
                             getExpirationPeriod(uFile.fileGroup))
 
                     if (makePublic) {
-                        savedUrlPath = fileUploaderInstance.getPermanentURL(containerName, uFile.name)
+                        savedUrlPath = fileUploaderInstance.getPermanentURL(containerName, uFile.fullName)
                     } else {
-                        savedUrlPath = fileUploaderInstance.getTemporaryURL(containerName, uFile.name,
+                        savedUrlPath = fileUploaderInstance.getTemporaryURL(containerName, uFile.fullName,
                                 getExpirationPeriod(uFile.fileGroup))
                     }
 
                     fileUploaderInstance.close()
-
-                    if (!savedUrlPath.contains("amazonaws")) {
-                        throw new Exception("Saved path incorrect for Amazon")
-                    }
-
                 } else {
-                    publicBaseURL = rackspaceCDNFileUploaderService.uploadFileToCDN(containerName, downloadedFile, uFile.name)
-                    savedUrlPath = "$publicBaseURL/${uFile.name}"
-
-                    if (!savedUrlPath.contains("rackcdn")) {
-                        throw new Exception("Saved path incorrect for Rackspace")
-                    }
+//                    publicBaseURL = rackspaceCDNFileUploaderService.uploadFileToCDN(containerName, downloadedFile, 
+//                            uFile.fullName)
+//                    savedUrlPath = "$publicBaseURL/${uFile.name}"
+//
+//                    if (!savedUrlPath.contains("rackcdn")) {
+//                        throw new Exception("Saved path incorrect for Rackspace")
+//                    }
                 }
             } catch (Exception e) {
                 isSuccess = false
                 message = e.getMessage()
+                log.debug message
             }
 
             uFileHistory.moveCount++
@@ -665,7 +662,7 @@ class FileUploaderService {
             uFileHistory.details = message
 
             if (isSuccess) {
-                log.info "File moved: ${filename}"
+                log.debug "File moved: ${filename}"
 
                 uFileHistory.status = MoveStatus.SUCCESS
 
@@ -677,7 +674,7 @@ class FileUploaderService {
                 }
                 uFile.save(flush: true)
             } else {
-                log.warn "Error in moving file: ${filename}"
+                log.debug "Error in moving file: ${filename}"
                 uFileHistory.status = MoveStatus.FAILURE
             }
             uFile.save(flush: true)

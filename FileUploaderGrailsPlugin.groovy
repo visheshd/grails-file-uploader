@@ -2,7 +2,7 @@ class FileUploaderGrailsPlugin {
 
     def version = "2.4.9"
     def grailsVersion = "2.1 > *"
-    def groupId = "com.cc.plugins"
+    def groupId = "com.causecode.plugins"
     def pluginExcludes = [
         "grails-app/views/error.gsp",
         "src/templates"
@@ -15,7 +15,7 @@ class FileUploaderGrailsPlugin {
             to handle file uploading with multiple configuration.
 
             This is a heavily modified version with updates from visheshd, danieldbower, SAgrawal14"
-            This plugin also supports uploading files to CDN for Rackspace & Amazon"""
+            This plugin also supports uploading files to CDN for Google & Amazon"""
 
     def documentation = "https://github.com/causecode/grails-file-uploader"
     def organization = [ name: "CauseCode Technologies Pvt. Ltd.", url: "http://causecode.com" ]
