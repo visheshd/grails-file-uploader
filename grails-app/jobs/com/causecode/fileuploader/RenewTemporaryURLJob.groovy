@@ -7,16 +7,20 @@ class RenewTemporaryURLJob {
     }
 
     def fileUploaderService
-    def grailsEvents
+    // def grailsEvents
 
     def execute() {
-        log.info "Started executing RenewTemporaryURLJob.."
+        log.debug "Started executing RenewTemporaryURLJob.."
         fileUploaderService.renewTemporaryURL()
 
-        // Trigger event to notity the installing app for any further app specific processing
-        grailsEvents.event("file-uploader", "on-ufile-renewal")
+        /*
+         * Trigger event to notity the installing app for any further app specific processing.
+         * 
+         * TODO This is not working. Need to investigate grails events.
+         */
+        // grailsEvents.event("file-uploader", "on-ufile-renewal")
 
-        log.info "Finished executing RenewTemporaryURLJob."
+        log.debug "Finished executing RenewTemporaryURLJob."
     }
 
 }

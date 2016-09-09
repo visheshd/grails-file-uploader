@@ -521,10 +521,10 @@ class FileUploaderService {
                 ufileInstance.expiresOn = new Date(new Date().time + expirationPeriod * 1000)
                 ufileInstance.save(flush: true)
                 if (ufileInstance.hasErrors()) {
-                    log.warn "Error saving new URL for $ufileInstance"
+                    log.debug "Error saving new URL for $ufileInstance"
                 }
 
-                log.info "New URL for $ufileInstance [$ufileInstance.path] [$ufileInstance.expiresOn]"
+                log.debug "New URL for $ufileInstance [$ufileInstance.path] [$ufileInstance.expiresOn]"
             }
 
             fileUploaderInstance.close()
@@ -634,7 +634,7 @@ class FileUploaderService {
 
             filename = uFile.name
             filename = filename.contains("/") ? filename.substring(filename.lastIndexOf("/") + 1) : filename
-            downloadedFile =  getFileFromURL(uFile.path, filename)
+            downloadedFile = getFileFromURL(uFile.path, filename)
 
             UFileMoveHistory uFileHistory = UFileMoveHistory.findOrCreateByUfile(uFile)
 
@@ -643,19 +643,21 @@ class FileUploaderService {
                 return
             }
 
+            long expirationPeriod = getExpirationPeriod(uFile.fileGroup)
+            
             try {
                 if (toCDNProvider != CDNProvider.RACKSPACE) {
                     CDNFileUploader fileUploaderInstance
                     try {
                         fileUploaderInstance = getProviderInstance(toCDNProvider.name())
                         fileUploaderInstance.uploadFile(containerName, downloadedFile, uFile.fullName, makePublic,
-                                getExpirationPeriod(uFile.fileGroup))
+                                expirationPeriod)
 
                         if (makePublic) {
                             savedUrlPath = fileUploaderInstance.getPermanentURL(containerName, uFile.fullName)
                         } else {
                             savedUrlPath = fileUploaderInstance.getTemporaryURL(containerName, uFile.fullName,
-                                    getExpirationPeriod(uFile.fileGroup))
+                                    expirationPeriod)
                         }
 
                     } finally {
@@ -689,6 +691,8 @@ class FileUploaderService {
 
                 uFile.path = savedUrlPath
                 uFile.provider = toCDNProvider
+                
+                uFile.expiresOn = new Date(new Date().time + expirationPeriod * 1000)
 
                 if (makePublic) {
                     uFile.type = UFileType.CDN_PUBLIC

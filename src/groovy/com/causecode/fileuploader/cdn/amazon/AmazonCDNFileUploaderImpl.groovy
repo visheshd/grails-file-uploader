@@ -33,6 +33,7 @@ class AmazonCDNFileUploaderImpl extends CDNFileUploader {
 
         if (!key || !secret) {
             log.warn "No username or key configured for Amazon CDN service"
+            return
         }
 
         this.accessKey = key
@@ -59,7 +60,7 @@ class AmazonCDNFileUploaderImpl extends CDNFileUploader {
 
     @Override
     void close() {
-        context.close()
+        context?.close()
     }
 
     @Override
