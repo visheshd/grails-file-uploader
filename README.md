@@ -1,4 +1,4 @@
-# File-Uploader Plugin (Latest 2.4.4)
+# File-Uploader Plugin
 
 #### Causecode Technologies Pvt. Ltd.
 
@@ -11,16 +11,14 @@
 
 ## Uploading files to CDN
 
-To upload files to CDN (Supports both Rackspace and Amazon) one must have some configuration like given below:
+To upload files to CDN (Supports both Google and Amazon) one must have some configuration like given below:
 
 ```
-import com.lucastex.grails.fileuploader.CDNProvider
+import com.causecode.fileuploader.CDNProvider
 
 grails.tempDirectory = "./temp-files"     // Required to store files temporarily. Must not ends with "/"
 
 fileuploader {
-    RackspaceKey = "mykey"
-    RackspaceUsername = "myusername"
 
     AmazonKey = "somekey"	// For amazon S3
     AmazonSecret = "somesecret"
@@ -37,6 +35,8 @@ fileuploader {
         allowedExtensions = ["jpg","jpeg","gif","png"]
         storageTypes = "CDN"
         container = "anyContainerName"
+        provider = CDNProvider.GOOGLE
+        expirationPeriod = Time.Day * 30 // Time in seconds
     }
     logo {
         maxSize = 1024 * 1024 * 2 //256 kbytes
@@ -49,11 +49,16 @@ fileuploader {
 }
 ```
 
-To enable CDN to any group you must have a [rackspace](http://docs.rackspace.com/) account with a username & key.
-This username & key needs to be passed in config as shown in above example. Authentication can be done using username
-& password pair but currently only key/username pair is supported.    
-
 1. To enable CDN uploading to any group just set **storageType** to **CDN** & provide a container name.
 
 2. By default path URL retrieved from Amazon S3 service is temporary URL, which will be valid for 30 days bydefault. Which
 can be overwritten for group level configuration by setting **expirationPeriod**. This period must be of long type in seconds.
+
+3. For Google Cloud Authentication, you will have to add the key (JSON file downloaded from the Cloud Console) to the server
+and add an environment variable called `GOOGLE_APPLICATION_CREDENTIALS` which points to the file. In bashrc file, add:
+
+```
+# Google Default Credentials
+export GOOGLE_APPLICATION_CREDENTIALS='/path/to/key.json'
+```
+Note: Leave the file name as downloaded from the Google Cloud console.
