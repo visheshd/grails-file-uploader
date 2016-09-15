@@ -23,6 +23,10 @@ grails.project.dependency.resolution = {
     }
 
     dependencies {
+
+		inherits('global') {
+			excludes 'httpcore'
+		} 
         compile ("org.apache.jclouds.provider:cloudfiles-us:1.8.1", "org.apache.jclouds:jclouds-compute:1.8.1",
                 "org.apache.jclouds.provider:aws-s3:1.8.1") {
                     excludes "jclouds-core"
@@ -33,7 +37,7 @@ grails.project.dependency.resolution = {
              * Comment this while compiling, running as an standalone app or running test-cases.
              * But un-comment while publishing i.e for command `grails maven-install` or `grails maven-deploy`.
              */
-            //excludes 'guice', 'http-client'
+            excludes 'guice', 'http-client', 'httpcore'
         }
 
         compile("commons-fileupload:commons-fileupload:1.3.1")
