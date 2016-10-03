@@ -50,8 +50,8 @@ class FileUploaderService {
         try {
             return Class.forName(providerClassName)?.newInstance()
         } catch (ClassNotFoundException e) {
-            log.debug e.message
-            throw new ProviderNotFoundException("Provider $providerName not found.")
+            log.debug "Could not find Provider class", e
+            throw new ProviderNotFoundException("Provider $providerName not found.", e)
         }
     }
 
@@ -224,6 +224,10 @@ class FileUploaderService {
                     } else {
                         path = fileUploaderInstance.getTemporaryURL(containerName, tempFileFullName, expirationPeriod)
                     }
+                } catch (ProviderNotFoundException providerNotFoundException) {
+                    throw new UploadFailureException('Could not upload file as Provider was not found', providerNotFoundException)
+                } catch (UploadFailureException uploadFailureException){
+                    throw new UploadFailureException("Upload Failed!", uploadFailureException)
                 } finally {
                     fileUploaderInstance?.close()
                 }
@@ -312,6 +316,11 @@ class FileUploaderService {
                 try {
                     fileUploaderInstance = getProviderInstance(ufileInstance.provider.name())
                     fileUploaderInstance.deleteFile(containerName, ufileInstance.fullName)
+                } catch (ProviderNotFoundException providerNotFoundException) {
+                    throw new FileUploaderServiceException('Could not delete file as Provider was not found',
+                            providerNotFoundException)
+                } catch (GoogleCDNException googleCDNException){
+                    throw new FileUploaderServiceException("Delete Failed!", googleCDNException)
                 } finally {
                     fileUploaderInstance?.close()
                 }
@@ -660,6 +669,10 @@ class FileUploaderService {
                                     expirationPeriod)
                         }
 
+                    } catch (ProviderNotFoundException providerNotFoundException) {
+                        throw new UploadFailureException('Could not upload file as Provider was not found', providerNotFoundException)
+                    } catch (UploadFailureException uploadFailureException){
+                        throw new UploadFailureException("Upload Failed!", uploadFailureException)
                     } finally {
                         fileUploaderInstance?.close()
                     }
