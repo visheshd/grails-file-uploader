@@ -1,6 +1,6 @@
 package com.causecode.fileuploader
 
-class UploadFailureException extends Exception {
+class UploadFailureException extends StorageException {
 
     UploadFailureException(String message, Throwable throwable) {
         super(message, throwable)

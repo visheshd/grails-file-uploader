@@ -30,7 +30,7 @@ class FileUploaderService {
         File tempDirectory = new File(baseTemporaryDirectoryPath)
         tempDirectory.mkdirs()
 
-        log.info "Temporary directory for file uploading [${tempDirectory.absolutePath}"
+        log.info "Temporary directory for file uploading [${tempDirectory.absolutePath}]"
     }
 
     /**
@@ -76,7 +76,7 @@ class FileUploaderService {
      * @return
      */
     UFile saveFile(String group, def file, String customFileName = "", Object userInstance = null,
-            Locale locale = null) throws FileUploaderServiceException {
+            Locale locale = null) throws FileUploaderServiceException, UploadFailureException, ProviderNotFoundException {
 
         Long fileSize
         Date expireOn
@@ -224,14 +224,9 @@ class FileUploaderService {
                     } else {
                         path = fileUploaderInstance.getTemporaryURL(containerName, tempFileFullName, expirationPeriod)
                     }
-                } catch (ProviderNotFoundException providerNotFoundException) {
-                    throw new UploadFailureException('Could not upload file as Provider was not found', providerNotFoundException)
-                } catch (UploadFailureException uploadFailureException){
-                    throw new UploadFailureException("Upload Failed!", uploadFailureException)
                 } finally {
                     fileUploaderInstance?.close()
                 }
-
             } else {
 //                String publicBaseURL = rackspaceCDNFileUploaderService.uploadFileToCDN(containerName, tempFile, tempFileFullName)
 //                path = publicBaseURL + "/" + tempFileFullName
@@ -305,7 +300,7 @@ class FileUploaderService {
         return true
     }
 
-    boolean deleteFileForUFile(UFile ufileInstance) {
+    boolean deleteFileForUFile(UFile ufileInstance) throws ProviderNotFoundException, StorageException {
         log.debug "Deleting file for $ufileInstance"
 
         if (ufileInstance.type in [UFileType.CDN_PRIVATE, UFileType.CDN_PUBLIC]) {
@@ -316,11 +311,6 @@ class FileUploaderService {
                 try {
                     fileUploaderInstance = getProviderInstance(ufileInstance.provider.name())
                     fileUploaderInstance.deleteFile(containerName, ufileInstance.fullName)
-                } catch (ProviderNotFoundException providerNotFoundException) {
-                    throw new FileUploaderServiceException('Could not delete file as Provider was not found',
-                            providerNotFoundException)
-                } catch (GoogleCDNException googleCDNException){
-                    throw new FileUploaderServiceException("Delete Failed!", googleCDNException)
                 } finally {
                     fileUploaderInstance?.close()
                 }
@@ -632,7 +622,8 @@ class FileUploaderService {
      * @param List UFile list. File to be moved
      * @author Rohit Pal
      */
-    void moveFilesToCDN(CDNProvider toCDNProvider, String containerName, boolean makePublic = false, List<UFile> uFileList) {
+    void moveFilesToCDN(CDNProvider toCDNProvider, String containerName, boolean makePublic = false,
+                  List<UFile> uFileList) throws ProviderNotFoundException, StorageException {
         String filename, savedUrlPath, publicBaseURL, message = "Moved successfully"
         File downloadedFile
         boolean isSuccess = true
@@ -669,10 +660,6 @@ class FileUploaderService {
                                     expirationPeriod)
                         }
 
-                    } catch (ProviderNotFoundException providerNotFoundException) {
-                        throw new UploadFailureException('Could not upload file as Provider was not found', providerNotFoundException)
-                    } catch (UploadFailureException uploadFailureException){
-                        throw new UploadFailureException("Upload Failed!", uploadFailureException)
                     } finally {
                         fileUploaderInstance?.close()
                     }
