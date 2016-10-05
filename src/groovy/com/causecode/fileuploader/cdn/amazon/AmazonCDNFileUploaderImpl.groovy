@@ -138,8 +138,7 @@ class AmazonCDNFileUploaderImpl extends CDNFileUploader {
         try {
             client.putObject(containerName, s3ObjectToUpdate, fileOptions)
         } catch (Exception e) {
-            log.debug e.message
-            throw new UploadFailureException(fileName, containerName)
+            throw new UploadFailureException(fileName, containerName, e)
         }
         return true
     }
