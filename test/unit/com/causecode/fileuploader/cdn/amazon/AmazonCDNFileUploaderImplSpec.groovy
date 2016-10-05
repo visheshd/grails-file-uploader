@@ -41,19 +41,4 @@ class AmazonCDNFileUploaderImplSpec extends Specification {
         cleanup:
         file.delete()
     }
-
-    void "test Amazon Cloud Storage for handling KeyNotFoundException"() {
-        given: "A file instance"
-        File file = new File('test.txt')
-        file.createNewFile()
-        file << 'This is a test document.'
-
-        when: "uploadFile() method is called"
-        amazonCDNFileUploaderImpl.updatePreviousFileMetaData("dummyContainer", "test", false, 3600l)
-
-        then: "it should handle KeyNotFoundException"
-
-        cleanup:
-        file.delete()
-    }
 }
