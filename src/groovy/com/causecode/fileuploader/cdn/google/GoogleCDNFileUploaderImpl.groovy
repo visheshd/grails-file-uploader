@@ -7,7 +7,7 @@
  */
 package com.causecode.fileuploader.cdn.google
 
-import com.causecode.fileuploader.GoogleCDNException
+import com.causecode.fileuploader.GoogleStorageException
 import com.causecode.fileuploader.UploadFailureException
 import com.causecode.fileuploader.cdn.CDNFileUploader
 import com.google.cloud.storage.Blob
@@ -43,8 +43,7 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
         try {
             return gStorage.get(blobId)
         } catch (StorageException e) {
-            log.debug e.message
-            throw new GoogleCDNException("Could not find file ${fileName}")
+            throw new GoogleStorageException("Could not find file ${fileName}", e)
         }
     }
 
@@ -53,8 +52,7 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
         try {
             gStorage = StorageOptions.defaultInstance().service()
         } catch (Exception e) {
-            log.debug e.message
-            throw new GoogleCDNException("Could not authenticate GoogleCDNFileUploader")
+            throw new GoogleStorageException("Could not authenticate GoogleCDNFileUploader", e)
         }
 
         return true
@@ -70,8 +68,7 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
         try {
             gStorage.get(name)
         } catch (StorageException e) {
-            log.debug e.message
-            throw new GoogleCDNException("Could not find container $name")
+            throw new GoogleStorageException("Could not find container $name", e)
         }
 
         return true
@@ -79,11 +76,11 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
 
     @Override
     boolean createContainer(String name) {
+        Bucket bucket
         try {
-            Bucket bucket = gStorage.create(BucketInfo.of(name));
+            bucket = gStorage.create(BucketInfo.of(name));
         } catch (StorageException e) {
-            log.debug e.message
-            throw new GoogleCDNException("Could not create container.")
+            throw new GoogleStorageException("Could not create container.", e)
         }
 
         log.debug "Container with name ${bucket.name()} successfully created."
@@ -96,7 +93,7 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
         Blob blob = getBlob(containerName, fileName)
 
         if (!blob.delete(Blob.BlobSourceOption.generationMatch())) {
-            throw new GoogleCDNException("Could not delete file $fileName from container $containerName")
+            throw new GoogleStorageException("Could not delete file $fileName from container $containerName")
         }
 
         log.debug "Successfully deleted file $fileName from container $containerName"
@@ -132,8 +129,7 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
         try {
             gStorage.create(blobInfo, file.bytes)
         } catch (StorageException e) {
-            log.debug e.message
-            throw new UploadFailureException(fileName, containerName)
+            throw new UploadFailureException(fileName, containerName, e)
         }
 
         log.debug "Successfully uploaded file $fileName"
