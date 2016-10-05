@@ -26,24 +26,22 @@ class GoogleCDNFileUploaderImplSpec extends Specification {
         }
     }
 
-    def cleanup() {
-    }
-
-    void "test deleteFile for GoogleStorageException"() {
-        given: "mocked delete method for Blob class"
+    void "test Google Cloud Storage for delete failure"() {
+        given: "mocked 'delete' method for Blob class"
         Blob.metaClass.delete = { Blob.BlobSourceOption... options ->
             return false
         }
 
-        when: "deleteFile is called"
+        when: "deleteFile() method is called"
         googleCDNFileUploaderImpl.deleteFile("dummyContainer", "testFile")
 
-        then: "it should throw an exception"
+        then: "it should throw GoogleStorageException exception"
         GoogleStorageException e = thrown()
+        e.message == "Could not delete file testFile from container dummyContainer"
     }
 
-    void "test uploadFile for UploadFailureException"() {
-        given: "A file instance"
+    void "test Google Cloud Storage for upload failure"() {
+        given: "A file instance and mocked 'of' method of class BlobId"
         File file = new File('test.txt')
         file.createNewFile()
         file << 'This is a test document.'
@@ -52,20 +50,23 @@ class GoogleCDNFileUploaderImplSpec extends Specification {
             return new BlobId("dummyContainer", "test", 2l)
         }
 
-        when: "uploadFile is called"
+        when: "uploadFile() method  is called"
         googleCDNFileUploaderImpl.uploadFile("dummyContainer", file, "test", false, 3600l)
 
         then: "it should throw UploadFailureException"
         UploadFailureException e = thrown()
+        e.message == "Could not upload file test to container dummyContainer"
+
+        cleanup:
+        file.delete()
     }
 
-    void "test createContainer for GoogleStorageException"() {
-        given: "mocked delete method for Blob class"
-
-        when: "deleteFile is called"
+    void "test Google Cloud Storage for create Container failure"() {
+        when: "createContainer() method is called"
         googleCDNFileUploaderImpl.createContainer("dummyContainer")
 
-        then: "it should throw an exception"
+        then: "it should throw GoogleStorageException exception"
         GoogleStorageException e = thrown()
+        e.message == "Could not create container."
     }
 }

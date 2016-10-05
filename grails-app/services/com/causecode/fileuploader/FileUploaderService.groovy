@@ -99,7 +99,8 @@ class FileUploaderService {
             fileSize = uploaderFile?.size
         }
 
-        log.info "Received ${empty ? 'empty ' : ''}file [$receivedFileName] of size [$fileSize] & content type [$contentType]."
+        log.info "Received ${empty ? 'empty ' : ''} file [$receivedFileName] of size [$fileSize] & content type " +
+                "[$contentType]."
         if (empty || !file) {
             return null
         }

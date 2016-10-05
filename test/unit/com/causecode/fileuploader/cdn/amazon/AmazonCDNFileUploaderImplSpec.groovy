@@ -25,31 +25,35 @@ class AmazonCDNFileUploaderImplSpec extends Specification {
         }
     }
 
-    def cleanup() {
-    }
-
-    void "test uploadFile for UploadFailureException"() {
+    void "test Amazon Cloud Storage for upload failure"() {
         given: "A file instance"
         File file = new File('test.txt')
         file.createNewFile()
         file << 'This is a test document.'
 
-        when: "uploadFile is called"
+        when: "uploadFile() method is called"
         amazonCDNFileUploaderImpl.uploadFile("dummyContainer", file, "test", false, 3600l)
 
         then: "it should throw UploadFailureException"
         UploadFailureException e = thrown()
+        e.message == "Could not upload file test to container dummyContainer"
+
+        cleanup:
+        file.delete()
     }
 
-    void "test updatePreviousFileMetaData for handling KeyNotFoundException"() {
+    void "test Amazon Cloud Storage for handling KeyNotFoundException"() {
         given: "A file instance"
         File file = new File('test.txt')
         file.createNewFile()
         file << 'This is a test document.'
 
-        when: "uploadFile is called"
+        when: "uploadFile() method is called"
         amazonCDNFileUploaderImpl.updatePreviousFileMetaData("dummyContainer", "test", false, 3600l)
 
         then: "it should handle KeyNotFoundException"
+
+        cleanup:
+        file.delete()
     }
 }

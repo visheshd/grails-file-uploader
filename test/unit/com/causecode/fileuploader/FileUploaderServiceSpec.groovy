@@ -90,29 +90,30 @@ class FileUploaderServiceSpec extends Specification {
         "testAmazon" | CDNProvider.AMAZON
     }
 
-    @Unroll
     void "test saveFile for uploading files with ProviderNotFoundException exception"() {
         given: "A file instance"
         File file = new File('test.txt')
         file.createNewFile()
         file << 'This is a test document.'
 
+        // TODO: Use metaClass in the next release to mock the getProviderInstance method
         def mock = [getProviderInstance: { providerName ->
             throw new ProviderNotFoundException("Provider $providerName not found.")
         }] as FileUploaderService
 
-        when: "The saveFile method is called"
+        when: "The saveFile() method is called"
         UFile ufileInstancefile = mock.saveFile("testAmazon", file, 'test')
 
         then: "It should throw ProviderNotFoundException"
         ProviderNotFoundException e = thrown()
+        e.message == "Provider AMAZON not found."
 
+        cleanup:
         file.delete()
     }
 
-    @Unroll
-    void "test saveFile for uploading files with UploadFailureException exception"() {
-        given: "A file instance"
+    void "test saveFile method in FileUploaderService when file upload fails"() {
+        given: "A file instance and mocked method 'uploadFile' of class GoogleCDNFileUploaderImpl"
         File file = new File('test.txt')
         file.createNewFile()
         file << 'This is a test document.'
@@ -122,13 +123,13 @@ class FileUploaderServiceSpec extends Specification {
                 throw new UploadFailureException(fileName, containerName, new Throwable())
         }
 
-
-        when: "The saveFile method is called"
+        when: "The saveFile() method is called"
         UFile ufileInstancefile = service.saveFile("testGoogle", file, 'test')
 
         then: "It should throw UploadFailureException"
         UploadFailureException e = thrown()
 
+        cleanup:
         file.delete()
     }
 

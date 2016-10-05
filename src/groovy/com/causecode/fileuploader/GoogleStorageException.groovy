@@ -1,6 +1,6 @@
 package com.causecode.fileuploader
 
-class GoogleStorageException extends Exception {
+class GoogleStorageException extends StorageException {
 
     GoogleStorageException(String message) {
         super(message)
