@@ -76,7 +76,7 @@ class FileUploaderService {
      * @return
      */
     UFile saveFile(String group, def file, String customFileName = "", Object userInstance = null,
-            Locale locale = null) throws FileUploaderServiceException, UploadFailureException, ProviderNotFoundException {
+            Locale locale = null) throws StorageConfigurationException, UploadFailureException, ProviderNotFoundException {
 
         Long fileSize
         Date expireOn
@@ -109,7 +109,7 @@ class FileUploaderService {
         ConfigObject groupConfig = config[group]
 
         if (config[group].isEmpty()) {
-            throw new FileUploaderServiceException("No config defined for group [$group]. Please define one in your Config file.")
+            throw new StorageConfigurationException("No config defined for group [$group]. Please define one in your Config file.")
         }
 
         int extensionAt = receivedFileName.lastIndexOf(".")
@@ -124,7 +124,7 @@ class FileUploaderService {
             String msg = messageSource.getMessage("fileupload.upload.unauthorizedExtension",
                     [fileExtension, groupConfig.allowedExtensions] as Object[], locale)
             log.debug msg
-            throw new FileUploaderServiceException(msg)
+            throw new StorageConfigurationException(msg)
         }
 
         /**
@@ -135,7 +135,7 @@ class FileUploaderService {
             if (fileSize > groupConfig.maxSize) { //if filesize is bigger than allowed
                 log.debug "FileUploader plugin received a file bigger than allowed. Max file size is ${maxSizeInKb} kb"
                 def msg = messageSource.getMessage("fileupload.upload.fileBiggerThanAllowed", [maxSizeInKb] as Object[], locale)
-                throw new FileUploaderServiceException(msg)
+                throw new StorageConfigurationException(msg)
             }
         }
 
@@ -387,10 +387,10 @@ class FileUploaderService {
      * @param ufileInstance
      * @param name
      * @param locale
-     * @throws FileUploaderServiceException
+     * @throws StorageConfigurationException
      * @throws IOException
      */
-    UFile cloneFile(String group, UFile ufileInstance, String name = "", Locale locale = null) throws FileUploaderServiceException, IOException {
+    UFile cloneFile(String group, UFile ufileInstance, String name = "", Locale locale = null) throws StorageConfigurationException, IOException {
         log.info "Cloning ufile [${ufileInstance?.id}][${ufileInstance?.name}]"
         if (!ufileInstance) {
             log.warn "Invalid/null ufileInstance received."
