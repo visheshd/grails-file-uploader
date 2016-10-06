@@ -29,10 +29,6 @@ grails.project.dependency.resolution = {
                 }
 
         compile("org.apache.jclouds:jclouds-core:1.8.1", "com.google.cloud:google-cloud-storage:0.3.0") {
-            /*
-             * Comment this while compiling, running as an standalone app or running test-cases.
-             * But un-comment while publishing i.e for command `grails maven-install` or `grails maven-deploy`.
-             */
             if (Environment.current == Environment.PRODUCTION) {
                 excludes 'guice', 'http-client'
             }
