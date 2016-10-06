@@ -62,3 +62,10 @@ and add an environment variable called `GOOGLE_APPLICATION_CREDENTIALS` which po
 export GOOGLE_APPLICATION_CREDENTIALS='/path/to/key.json'
 ```
 Note: Leave the file name as downloaded from the Google Cloud console.
+
+## For Grails 2.x,
+  
+1. To release plugin locally run grails clean && grails compile && grails prod maven-install.
+  
+2. To release to causecode maven repo, refer https://bitbucket.org/causecode/knowledge/src/f975c72b1ffc67dc5ec5f7bf0807ef6188f6c262/5.grails/plugins/deploy-plugin-to-maven-repository.md
+
