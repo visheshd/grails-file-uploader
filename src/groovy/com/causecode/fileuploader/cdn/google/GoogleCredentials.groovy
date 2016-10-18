@@ -7,7 +7,6 @@
  */
 package com.causecode.fileuploader.cdn.google
 
-import com.causecode.fileuploader.GoogleStorageException
 import com.causecode.fileuploader.StorageConfigurationException
 import com.google.auth.oauth2.OAuth2Utils
 import com.google.auth.oauth2.ServiceAccountCredentials
@@ -17,12 +16,11 @@ import com.google.cloud.storage.StorageOptions
 import grails.util.Holders
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-
 /**
  * This file is used as a wrapper for the Google Credentials configuration. It first reads the location of the JSON
  * key file from the GOOGLE_APPLICATION_CREDENTIALS environment variable and parse the credentials, if that fails it
- * then tries to read the location of the file from the 'fileuploader.storageProvider.google.auth' config and then read
- * the file and finally if that fails, it creates auth credentials by reading the values from the config object 
+ * then tries to read the location of the file from the 'fileuploader.storageProvider.google.authFile' config and then 
+ * read the file and finally if that fails, it creates auth credentials by reading the values from the config object 
  * 'fileuploader.storageProvider.google' and assigning them to the respective fields defined in this class.
  *
  * @author Nikhil Sharma
@@ -40,13 +38,6 @@ class GoogleCredentials {
     String client_id
 
     ConfigObject googleCredentials
-
-    // Reference URL's
-    String auth_uri = 'https://accounts.google.com/o/oauth2/auth'
-    String token_uri = 'https://accounts.google.com/o/oauth2/token'
-    String auth_provider_x509_cert_url = 'https://www.googleapis.com/oauth2/v1/certs'
-    String client_x509_cert_url = 'https://www.googleapis.com/robot/v1/metadata/x509/' +
-            'gcs-development%40we-are-curious.iam.gserviceaccount.com'
 
     /**
      * Initializes the configurations for Google Cloud Storage Authentication from the grails config object.
@@ -115,7 +106,7 @@ class GoogleCredentials {
      * @since 2.5.2
      */
     Storage authenticateUsingKeyFileFromConfig() throws IOException, IllegalArgumentException {
-        String keyFilePath = googleCredentials.auth
+        String keyFilePath = googleCredentials?.authFile
 
         if (!keyFilePath) {
             throw new IllegalArgumentException('JSON Key file path for storage provider Google not found.')
@@ -171,41 +162,35 @@ class GoogleCredentials {
     /**
      * Authenticates the GCS in 3 ways,
      *
-     * 1. Using default authentication (Reading JSON key file's path from environment variable)
+     * 1. Using direct credential values from Config object (File is not required in this case)
      * 2. Using config object to create AuthCredentials (Reading JSON key file's path from config object)
-     * 3. Using direct credential values from Config object (File is not required in this case)
-     *
-     *
+     * 3. Using default authentication (Reading JSON key file's path from environment variable)
+     * 
      * @throws StorageConfigurationException
-     * @throws GoogleStorageException
      * @return Object Instance of Storage
      *
      * @author Nikhil Sharma
      * @since 2.5.2
      */
-    Storage getStorage() throws GoogleStorageException, StorageConfigurationException {
+    Storage getStorage() throws StorageConfigurationException {
         try {
-            return authenticateUsingEnvironmentVariable()
-        } catch (IllegalArgumentException e) {
-            log.debug 'Authentication using GOOGLE_APPLICATION_CREDENTIALS environment variable failed for Google ' +
-                    'Cloud Storage.', e
-
-            // If configuration for Google is not found, then StorageConfigurationException is thrown.
             initializeGoogleCredentialsFromConfig()
+            return authenticateUsingValuesFromConfig()
+        } catch (StorageConfigurationException | IllegalArgumentException | IOException | NullPointerException e) {
+            log.debug 'Authentication using direct config values failed.', e
 
-            log.debug 'Trying by reading the Key file using the path defined in the config.'
             try {
                 return authenticateUsingKeyFileFromConfig()
             } catch (IllegalArgumentException | IOException e1) {
                 log.debug 'Authentication by reading file from path defined in config failed.', e1
 
-                log.debug 'Trying to create credentials using direct values defined in config.'
                 try {
-                    return authenticateUsingValuesFromConfig()
-                } catch (IllegalArgumentException | IOException | NullPointerException e2) {
-                    log.debug 'Authentication using direct config values failed.', e2
+                    return authenticateUsingEnvironmentVariable()
+                } catch (IllegalArgumentException e2) {
+                    log.debug 'Authentication using GOOGLE_APPLICATION_CREDENTIALS environment variable failed for ' +
+                            'Google Cloud Storage.', e2
 
-                    throw new GoogleStorageException('Could not authenticate GoogleCDNFileUploader', e2)
+                    throw new StorageConfigurationException('GCS Authentication failed due to bad configuration', e2)
                 }
             }
         }

@@ -45,7 +45,7 @@ fileuploader {
 
         google {
             // The path of the JSON Key file.
-            auth = 'testkey.json'
+            authFile = 'testkey.json'
             project_id = 'test_id'
             client_id = 'test_client_id'
             client_email = 'test@email.com'

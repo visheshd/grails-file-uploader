@@ -73,7 +73,7 @@ class GoogleCredentialsSpec extends Specification {
         file.delete()
         // Only auth variable should be present. To confirm credentials are read from the file and not the config.
         grailsApplication.config.fileuploader.storageProvider.google = [:]
-        grailsApplication.config.fileuploader.storageProvider.google.auth = testFilePath
+        grailsApplication.config.fileuploader.storageProvider.google.authFile = testFilePath
         grailsApplication.config.fileuploader.storageProvider.google.project_id = 'test_id'
 
         assert Holders.config.fileuploader.storageProvider.google.private_key == null
@@ -93,7 +93,7 @@ class GoogleCredentialsSpec extends Specification {
     void 'test authenticaton by reading path of json file from config object when path is #filePath'() {
         given: 'auth is set to blank/incorrect path'
         grailsApplication.config.fileuploader.storageProvider.google = [:]
-        grailsApplication.config.fileuploader.storageProvider.google.auth = filePath
+        grailsApplication.config.fileuploader.storageProvider.google.authFile = filePath
         grailsApplication.config.fileuploader.storageProvider.google.project_id = 'test_id'
 
         assert Holders.config.fileuploader.storageProvider.google.private_key == null

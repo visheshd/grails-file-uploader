@@ -8,6 +8,7 @@
 package com.causecode.fileuploader.cdn.google
 
 import com.causecode.fileuploader.GoogleStorageException
+import com.causecode.fileuploader.StorageConfigurationException
 import com.causecode.fileuploader.UploadFailureException
 import com.causecode.fileuploader.cdn.CDNFileUploader
 import com.google.cloud.storage.Blob
@@ -47,10 +48,14 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
     }
 
     @Override
-    boolean authenticate() {
-        gStorage = gStorage ?: new GoogleCredentials().storage
+    boolean authenticate() throws GoogleStorageException {
+        try {
+            gStorage = gStorage ?: new GoogleCredentials().storage
+        } catch (StorageConfigurationException e) {
+            throw new GoogleStorageException('Could not authenticate GoogleCDNFileUploader', e)
+        }
 
-        return true
+        return gStorage ? true : false
     }
 
     @Override
