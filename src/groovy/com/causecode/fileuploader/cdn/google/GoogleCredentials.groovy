@@ -16,12 +16,15 @@ import com.google.cloud.storage.StorageOptions
 import grails.util.Holders
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
+
 /**
- * This file is used as a wrapper for the Google Credentials configuration. It first reads the location of the JSON
- * key file from the GOOGLE_APPLICATION_CREDENTIALS environment variable and parse the credentials, if that fails it
- * then tries to read the location of the file from the 'fileuploader.storageProvider.google.authFile' config and then 
- * read the file and finally if that fails, it creates auth credentials by reading the values from the config object 
- * 'fileuploader.storageProvider.google' and assigning them to the respective fields defined in this class.
+ * This file is used as a wrapper for the Google Credentials configuration. 
+ * 
+ * Authenticates the GCS in 3 ways,
+ *
+ * 1. Using direct credential values from Config object (File is not required in this case)
+ * 2. Using config object to create AuthCredentials (Reading JSON key file's path from config object)
+ * 3. Using default authentication (Reading JSON key file's path from environment variable)
  *
  * @author Nikhil Sharma
  * @since 2.5.2

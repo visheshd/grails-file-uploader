@@ -27,7 +27,7 @@ fileuploader {
             AmazonSecret = "somesecret"
         }
         google {
-            auth = '/path/to/key.json'
+            authFile = '/path/to/key.json'
             
             // This is must for both cases, i.e reading file using the path in 'auth' or reading hard coded credentials from here itself.
             project_id = '<project_id_provided_in_json_key_file>'
