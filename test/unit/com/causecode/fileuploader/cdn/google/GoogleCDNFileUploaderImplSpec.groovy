@@ -2,18 +2,20 @@ package com.causecode.fileuploader.cdn.google
 
 import com.causecode.fileuploader.GoogleStorageException
 import com.causecode.fileuploader.UploadFailureException
-import com.google.cloud.storage.*
+import com.google.cloud.storage.Blob
+import com.google.cloud.storage.BlobId
+import com.google.cloud.storage.BlobInfo
+import com.google.cloud.storage.BucketInfo
+import com.google.cloud.storage.Storage
+import com.google.cloud.storage.StorageException
 import grails.test.mixin.TestMixin
 import grails.test.mixin.support.GrailsUnitTestMixin
 import spock.lang.Specification
 
-/**
- * See the API for {@link grails.test.mixin.support.GrailsUnitTestMixin} for usage instructions
- */
 @TestMixin(GrailsUnitTestMixin)
 class GoogleCDNFileUploaderImplSpec extends Specification {
 
-    GoogleCDNFileUploaderImpl googleCDNFileUploaderImpl = new GoogleCDNFileUploaderImpl()
+    GoogleCDNFileUploaderImpl googleCDNFileUploaderImpl
 
     def setup() {
         GoogleCDNFileUploaderImpl.metaClass.getBlob = { String containerName, String fileName ->
@@ -24,6 +26,8 @@ class GoogleCDNFileUploaderImplSpec extends Specification {
         Storage.metaClass.create = { BucketInfo var1, Storage.BucketTargetOption... var2 ->
             throw new StorageException(1, "Test exception")
         }
+
+        googleCDNFileUploaderImpl = new GoogleCDNFileUploaderImpl()
     }
 
     void "test Google Cloud Storage for delete failure"() {
