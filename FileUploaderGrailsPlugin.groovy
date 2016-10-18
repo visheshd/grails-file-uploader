@@ -1,6 +1,6 @@
 class FileUploaderGrailsPlugin {
 
-    def version = "2.5.2"
+    def version = "v2.5.2"
     def grailsVersion = "2.1 > *"
     def groupId = "com.causecode.plugins"
     def pluginExcludes = [
