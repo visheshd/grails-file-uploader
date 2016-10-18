@@ -10,6 +10,7 @@ package com.causecode.fileuploader
 
 import com.causecode.fileuploader.cdn.amazon.AmazonCDNFileUploaderImpl
 import com.causecode.fileuploader.cdn.google.GoogleCDNFileUploaderImpl
+import com.causecode.fileuploader.cdn.google.GoogleCredentials
 import grails.test.mixin.Mock
 import grails.test.mixin.TestFor
 import grails.test.mixin.TestMixin
@@ -24,12 +25,8 @@ import spock.lang.Unroll
 class FileUploaderServiceSpec extends Specification {
 
     void setup() {
-        AmazonCDNFileUploaderImpl.metaClass.authenticate = { ->
-            return true
-        }
-
-        GoogleCDNFileUploaderImpl.metaClass.authenticate = { ->
-            return true
+        GoogleCredentials.metaClass.getStorage = { ->
+            return
         }
 
         AmazonCDNFileUploaderImpl.metaClass.close = { ->

@@ -56,7 +56,7 @@ class UFile implements Serializable {
     }
 
     String getContainer() {
-        containerName(Holders.getFlatConfig()["fileuploader.${fileGroup}.container"])
+        containerName(Holders.getFlatConfig()["fileuploader.groups.${fileGroup}.container"])
     }
 
     String getFullName() {
@@ -77,6 +77,10 @@ class UFile implements Serializable {
      * @return Modified container name as described above.
      */
     static String containerName(String containerName) {
+        if (!containerName) {
+            return
+        }
+
         if (Environment.current != Environment.PRODUCTION) {
             return containerName + "-" + Environment.current.name
         }

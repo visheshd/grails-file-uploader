@@ -15,36 +15,57 @@ To upload files to CDN (Supports both Google and Amazon) one must have some conf
 
 ```
 import com.causecode.fileuploader.CDNProvider
+import com.causecode.fileuploader.util.Time
 
 grails.tempDirectory = "./temp-files"     // Required to store files temporarily. Must not ends with "/"
 
 fileuploader {
 
-    AmazonKey = "somekey"	// For amazon S3
-    AmazonSecret = "somesecret"
-    defaultContainer = "anyConatainer"  // Container to move local files to cloud
+    storageProvider {
+        amazon {
+            AmazonKey = "somekey"	// For amazon S3
+            AmazonSecret = "somesecret"
+        }
+        google {
+            auth = '/path/to/key.json'
+            
+            // This is must for both cases, i.e reading file using the path in 'auth' or reading hard coded credentials from here itself.
+            project_id = '<project_id_provided_in_json_key_file>'
+            
+            // Other required values from JSON key file.
+            private_key_id = '<private_key_id_provided_in_json_key_file>'
+            private_key = '<private_key_provided_in_json_key_file>'
+            client_email = '<client_email_provided_in_json_key_file>'
+            client_id = '<client_id_provided_in_json_key_file>'
+            
+            // Optional, this defaults to 'service_account'.
+            type = ''
+        }
+    }
 
-    degreeApplication {			// Non CDN files, will be stored in local directory.
-        maxSize = 1000 * 1024 //256 kbytes
-        allowedExtensions = ["xls"]
-        path = "./web-app/degree-applications"
-        storageTypes = ""
-    }
-    userAvatar {
-        maxSize = 1024 * 1024 * 2 //256 kbytes
-        allowedExtensions = ["jpg","jpeg","gif","png"]
-        storageTypes = "CDN"
-        container = "anyContainerName"
-        provider = CDNProvider.GOOGLE
-        expirationPeriod = Time.Day * 30 // Time in seconds
-    }
-    logo {
-        maxSize = 1024 * 1024 * 2 //256 kbytes
-        allowedExtensions = ["jpg","jpeg","gif","png"]
-        storageTypes = "CDN"
-        container = "anyContainerName"
-        provider = CDNProvider.AMAZON
-        expirationPeriod = 60 * 60 * 24 * 2 // Two hours
+    groups {
+        degreeApplication {			// Non CDN files, will be stored in local directory.
+            maxSize = 1000 * 1024 //256 kbytes
+            allowedExtensions = ["xls"]
+            path = "./web-app/degree-applications"
+            storageTypes = ""
+        }
+        userAvatar {
+            maxSize = 1024 * 1024 * 2 //256 kbytes
+            allowedExtensions = ["jpg","jpeg","gif","png"]
+            storageTypes = "CDN"
+            container = "anyContainerName"
+            provider = CDNProvider.GOOGLE
+            expirationPeriod = Time.Day * 30 // Time in seconds
+        }
+        logo {
+            maxSize = 1024 * 1024 * 2 //256 kbytes
+            allowedExtensions = ["jpg","jpeg","gif","png"]
+            storageTypes = "CDN"
+            container = "anyContainerName"
+            provider = CDNProvider.AMAZON
+            expirationPeriod = 60 * 60 * 24 * 2 // Two hours
+        }
     }
 }
 ```

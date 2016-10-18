@@ -69,8 +69,18 @@ class FileUploaderController {
         [UFileInstanceList: UFileInstanceList, UFileInstanceTotal: UFileInstanceList.totalCount]
     }
 
-    def moveToCloud() {
-        String container = grailsApplication.config.fileuploader.container
+    // TODO Need to test and fix this action.
+    def moveToCloud(String group) {
+        if (!group) {
+            throw new StorageException('No group was specified.')
+        }
+
+        String container = grailsApplication.config.fileuploader.groups?.${group}?.container
+
+        if (!container) {
+            throw new StorageConfigurationException('No container found for this group.')
+        }
+
         List<Long> ufileIdList = params.list('ufileId')
         Set<UFile> validUFilesToMoveToCloud = []
 
