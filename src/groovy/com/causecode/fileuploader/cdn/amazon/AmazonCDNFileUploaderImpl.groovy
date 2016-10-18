@@ -28,8 +28,8 @@ class AmazonCDNFileUploaderImpl extends CDNFileUploader {
     AWSS3Client client
 
     AmazonCDNFileUploaderImpl() {
-        String key = Holders.getFlatConfig()["fileuploader.AmazonKey"]
-        String secret = Holders.getFlatConfig()["fileuploader.AmazonSecret"]
+        String key = Holders.getFlatConfig()['fileuploader.storageProvider.amazon.AmazonKey']
+        String secret = Holders.getFlatConfig()['fileuploader.storageProvider.amazon.AmazonSecret']
 
         if (!key || !secret) {
             log.warn "No username or key configured for Amazon CDN service"

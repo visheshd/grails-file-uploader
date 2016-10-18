@@ -105,10 +105,10 @@ class FileUploaderService {
             return null
         }
 
-        ConfigObject config = Holders.getConfig().fileuploader
+        ConfigObject config = Holders.getConfig().fileuploader.groups
         ConfigObject groupConfig = config[group]
 
-        if (config[group].isEmpty()) {
+        if (groupConfig.isEmpty()) {
             throw new StorageConfigurationException("No config defined for group [$group]. Please define one in your Config file.")
         }
 
@@ -150,15 +150,10 @@ class FileUploaderService {
 
         if (storageTypes == "CDN") {
             type = UFileType.CDN_PUBLIC
-            String containerName
+            String containerName = UFile.containerName(groupConfig.container ?: config.container)
 
-            // If group specific container is not defined
-            if (groupConfig.container instanceof ConfigObject) {
-                // Then use the common container name
-                containerName = UFile.containerName(config.container)
-            } else {
-                // Otherwise use the group specific container
-                containerName = UFile.containerName(groupConfig.container)
+            if (!containerName) {
+                throw new StorageConfigurationException('Container name not defined in the Config. Please define one.')
             }
 
             long expirationPeriod = getExpirationPeriod(group)
@@ -204,10 +199,10 @@ class FileUploaderService {
             // Delete the temporary file when JVM exited since the base file is not required after upload
             tempFile.deleteOnExit()
 
-            if (groupConfig.provider instanceof ConfigObject) {
-                cdnProvider = config.provider
-            } else {
-                cdnProvider = groupConfig.provider
+            cdnProvider = groupConfig.provider ?: config.provider
+
+            if (!cdnProvider) {
+                throw new StorageConfigurationException('Provider not defined in the Config. Please define one.')
             }
 
             Boolean makePublic = isPublicGroup(group)
@@ -532,7 +527,8 @@ class FileUploaderService {
     }
 
     long getExpirationPeriod(String fileGroup) {
-        return Holders.getFlatConfig()["fileuploader.${fileGroup}.expirationPeriod"] ?: (Time.DAY * 30)      // Default to 30 Days
+        // Default to 30 Days
+        return Holders.getFlatConfig()["fileuploader.groups.${fileGroup}.expirationPeriod"] ?: (Time.DAY * 30)
     }
 
     /**
@@ -597,7 +593,7 @@ class FileUploaderService {
      * @author Priyanshu Chauhan
      */
     Boolean isPublicGroup(String fileGroup) {
-        return Holders.getFlatConfig()["fileuploader.${fileGroup}.makePublic"] ? true : false
+        return Holders.getFlatConfig()["fileuploader.groups.${fileGroup}.makePublic"] ? true : false
     }
 
     /**

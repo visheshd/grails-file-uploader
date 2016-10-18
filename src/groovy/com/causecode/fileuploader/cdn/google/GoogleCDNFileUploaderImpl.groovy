@@ -8,6 +8,7 @@
 package com.causecode.fileuploader.cdn.google
 
 import com.causecode.fileuploader.GoogleStorageException
+import com.causecode.fileuploader.StorageConfigurationException
 import com.causecode.fileuploader.UploadFailureException
 import com.causecode.fileuploader.cdn.CDNFileUploader
 import com.google.cloud.storage.Blob
@@ -17,7 +18,6 @@ import com.google.cloud.storage.Bucket
 import com.google.cloud.storage.BucketInfo
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageException
-import com.google.cloud.storage.StorageOptions
 import java.util.concurrent.TimeUnit
 import javax.activation.MimetypesFileTypeMap
 import org.apache.commons.logging.Log
@@ -32,7 +32,7 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
 
     private static Log log = LogFactory.getLog(this)
 
-    Storage gStorage
+    static Storage gStorage
 
     GoogleCDNFileUploaderImpl() {
         authenticate()
@@ -48,19 +48,20 @@ class GoogleCDNFileUploaderImpl extends CDNFileUploader {
     }
 
     @Override
-    boolean authenticate() {
+    boolean authenticate() throws GoogleStorageException {
         try {
-            gStorage = StorageOptions.defaultInstance().service()
-        } catch (Exception e) {
-            throw new GoogleStorageException("Could not authenticate GoogleCDNFileUploader", e)
+            gStorage = gStorage ?: new GoogleCredentials().storage
+        } catch (StorageConfigurationException e) {
+            throw new GoogleStorageException('Could not authenticate GoogleCDNFileUploader', e)
         }
 
-        return true
+        return gStorage ? true : false
     }
 
     @Override
     void close() {
-        gStorage = null
+        // TODO Need to fix this. Not setting it to null so as to set the working auth step to default.
+        // gStorage = null
     }
 
     @Override
