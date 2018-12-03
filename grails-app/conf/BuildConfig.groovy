@@ -6,6 +6,10 @@ grails.project.test.reports.dir  = "target/test-reports"
 grails.project.work.dir = "target/work"
 grails.project.dependency.resolver = "maven"
 
+grails.project.repos.ccRepo.url = "https://nexus.causecode.com/repository/maven-releases/"
+grails.project.repos.default = "ccRepo"
+grails.project.repos.ccRepo.type = "maven"
+
 if (Environment.current in [Environment.DEVELOPMENT, Environment.TEST]) {
     codenarc.propertiesFile = "grails-app/conf/codenarc.properties"
 }
@@ -20,6 +24,7 @@ grails.project.dependency.resolution = {
         grailsCentral()
         mavenCentral()
         mavenLocal()
+        mavenRepo "https://nexus.causecode.com/repository/maven-releases/"
     }
 
     dependencies {
@@ -29,9 +34,9 @@ grails.project.dependency.resolution = {
                 }
 
         compile("org.apache.jclouds:jclouds-core:1.8.1", "com.google.cloud:google-cloud-storage:0.3.0") {
-            if (Environment.current == Environment.PRODUCTION) {
+//            if (Environment.current == Environment.PRODUCTION) {
                 excludes 'guice', 'http-client'
-            }
+//            }
         }
 
         compile("commons-fileupload:commons-fileupload:1.3.1")
@@ -40,9 +45,9 @@ grails.project.dependency.resolution = {
 
     plugins {
         // Make sure to comment while packaging to allow Grails Mongodb plugin to install & hibernate to uninstall in parent app.
-        runtime (":hibernate4:5.0.0.RC1") {
-            export = false
-        }
+//        runtime (":hibernate4:5.0.0.RC1") {
+//            export = false
+//        }
         build(":tomcat:7.0.52.1", ":release:3.0.1", ":rest-client-builder:2.0.1", ":codenarc:0.22") {
             export = false
         }
