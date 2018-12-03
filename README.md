@@ -28,16 +28,16 @@ fileuploader {
         }
         google {
             authFile = '/path/to/key.json'
-            
+
             // This is must for both cases, i.e reading file using the path in 'auth' or reading hard coded credentials from here itself.
             project_id = '<project_id_provided_in_json_key_file>'
-            
+
             // Other required values from JSON key file.
             private_key_id = '<private_key_id_provided_in_json_key_file>'
             private_key = '<private_key_provided_in_json_key_file>'
             client_email = '<client_email_provided_in_json_key_file>'
             client_id = '<client_id_provided_in_json_key_file>'
-            
+
             // Optional, this defaults to 'service_account'.
             type = ''
         }
@@ -85,8 +85,44 @@ export GOOGLE_APPLICATION_CREDENTIALS='/path/to/key.json'
 Note: Leave the file name as downloaded from the Google Cloud console.
 
 ## For Grails 2.x,
-  
+
 1. To release plugin locally run grails clean && grails compile && grails prod maven-install.
-  
+
 2. To release to causecode maven repo, refer https://bitbucket.org/causecode/knowledge/src/f975c72b1ffc67dc5ec5f7bf0807ef6188f6c262/5.grails/plugins/deploy-plugin-to-maven-repository.md
 
+
+## Publish plugin
+
+### Local maven
+- Run following commands to publish plugin to local maven repository.
+```
+grails clean
+grails compile
+grails maven-install
+```
+
+Note: Make sure you are using Grails version 2.5.0 and Java version 1.7
+
+## Nexus repository
+- Run the following commands to publish the plugin to nexus.
+ ```
+ grails clean
+ grails compile
+ grails publish-plugin
+ ```
+
+ ### Credentials
+ Create a `settings.groovy` file in `~/.grails/` directory if not present and add the following config:
+ ```
+ // use username and password of nexus repo
+ grails.project.repos.ccRepo.username = "foo"
+ grails.project.repos.ccRepo.password = "bar"
+
+ grails.project.dependency.authentication = {
+   credentials {
+     id = "ccRepo"
+     username = "foo"
+     password = "bar"
+   }
+ }
+ ```
